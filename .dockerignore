@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+linux/
+macos/
+windows/
+ios/
+android/
+
+# IDEs
+.idea/
+.vscode/
+
+# Misc
+*.iml
+*.ipr
+*.iws

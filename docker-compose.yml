@@ -1,0 +1,10 @@
+services:
+  flutter_web_app:
+    # Build the image using the Dockerfile in the current directory
+    build: .
+    container_name: cleteci_cross_platform
+    # Map port 8080 on your host machine to port 80 in the container
+    ports:
+      - "8080:80"
+    # Restart the container automatically if it stops
+    restart: unless-stopped
