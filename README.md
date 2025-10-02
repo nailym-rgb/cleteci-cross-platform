@@ -35,4 +35,26 @@ En Docker Desktop, podremos ver lo siguiente:
 
 ![Contenedor en Ejecución en Docker Desktop](docker-desktop-running-container.png)
 
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Workflow Triggers
+
+The CI pipeline runs on:
+- Pushes to main, master, develop, and features branches
+- Pull requests targeting these branches
+
+### Jobs
+
+- **test**: Sets up Flutter, installs dependencies, runs tests, and builds the web app
+- **build-docker**: Builds the Docker image (only on pushes to master or develop branches)
+
+### Docker Hub Integration
+
+To enable automatic Docker Hub pushes:
+1. Create a Docker Hub account at https://hub.docker.com/
+2. Generate an access token in Account Settings > Security
+3. Add `DOCKER_USERNAME` and `DOCKER_PASSWORD` as repository secrets in GitHub
+4. Uncomment the Docker Hub steps in `.github/workflows/ci.yml`
 Para ver el proyecto, vamos al siguiente URL: [http://localhost:8080/](http://localhost:8080/).
