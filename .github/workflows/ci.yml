@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop, features ]
+  pull_request:
+    branches: [ main, master, develop, features ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.9.2'
+    - run: flutter pub get
+    - run: flutter test
+    - run: flutter build web
+
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Docker image
+      run: docker build -t cleteci-cross-platform .
+    # Uncomment the following steps to push to Docker Hub
+    # - name: Log in to Docker Hub
+    #   uses: docker/login-action@v3
+    #   with:
+    #     username: ${{ secrets.DOCKER_USERNAME }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    # - name: Push to Docker Hub
+    #   run: |
+    #     docker tag cleteci-cross-platform ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
+    #     docker push ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
