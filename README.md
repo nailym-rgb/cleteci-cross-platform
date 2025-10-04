@@ -35,26 +35,26 @@ En Docker Desktop, podremos ver lo siguiente:
 
 ![Contenedor en Ejecución en Docker Desktop](docker-desktop-running-container.png)
 
-## CI/CD Pipeline
+## Pipeline de CI/CD
 
-This project uses GitHub Actions for continuous integration and deployment.
+Este proyecto utiliza GitHub Actions para la integración y el despliegue continuos.
 
-### Workflow Triggers
+### Desencadenantes del flujo de trabajo
 
-The CI pipeline runs on:
-- Pushes to main, master, develop, and features branches
-- Pull requests targeting these branches
+La canalización de integración continua (CI) se ejecuta en:
+- Envíos a las ramas principal, maestra, de desarrollo y de características
+- Solicitudes de extracción dirigidas a estas ramas
 
-### Jobs
+### Job
 
-- **test**: Sets up Flutter, installs dependencies, runs tests, and builds the web app
-- **build-docker**: Builds the Docker image (only on pushes to master or develop branches)
+- **test**: Configura Flutter, instala dependencias, ejecuta pruebas y compila la aplicación web
+- **build-docker**: Compila la imagen de Docker (solo en envíos a las ramas maestra o de desarrollo)
 
-### Docker Hub Integration
+### Integración con Docker Hub
 
-To enable automatic Docker Hub pushes:
-1. Create a Docker Hub account at https://hub.docker.com/
-2. Generate an access token in Account Settings > Security
-3. Add `DOCKER_USERNAME` and `DOCKER_PASSWORD` as repository secrets in GitHub
-4. Uncomment the Docker Hub steps in `.github/workflows/ci.yml`
-Para ver el proyecto, vamos al siguiente URL: [http://localhost:8080/](http://localhost:8080/).
+Para habilitar los envíos automáticos de Docker Hub:
+1. Crea una cuenta de Docker Hub en https://hub.docker.com/
+2. Genera un token de acceso en Configuración de la cuenta > Seguridad
+3. Agrega `DOCKER_USERNAME` y `DOCKER_PASSWORD` como secretos del repositorio en GitHub
+4. Descomenta los pasos de Docker Hub en `.github/workflows/ci.yml`
+Para ver el proyecto, vamos a la siguiente URL: [http://localhost:8080/](http://localhost:8080/).
