@@ -35,4 +35,26 @@ En Docker Desktop, podremos ver lo siguiente:
 
 ![Contenedor en Ejecución en Docker Desktop](docker-desktop-running-container.png)
 
-Para ver el proyecto, vamos al siguiente URL: [http://localhost:8080/](http://localhost:8080/).
+## Pipeline de CI/CD
+
+Este proyecto utiliza GitHub Actions para la integración y el despliegue continuos.
+
+### Desencadenantes del flujo de trabajo
+
+La canalización de integración continua (CI) se ejecuta en:
+- Envíos a las ramas principal, maestra, de desarrollo y de características
+- Solicitudes de extracción dirigidas a estas ramas
+
+### Job
+
+- **test**: Configura Flutter, instala dependencias, ejecuta pruebas y compila la aplicación web
+- **build-docker**: Compila la imagen de Docker (solo en envíos a las ramas maestra o de desarrollo)
+
+### Integración con Docker Hub
+
+Para habilitar los envíos automáticos de Docker Hub:
+1. Crea una cuenta de Docker Hub en https://hub.docker.com/
+2. Genera un token de acceso en Configuración de la cuenta > Seguridad
+3. Agrega `DOCKER_USERNAME` y `DOCKER_PASSWORD` como secretos del repositorio en GitHub
+4. Descomenta los pasos de Docker Hub en `.github/workflows/ci.yml`
+Para ver el proyecto, vamos a la siguiente URL: [http://localhost:8080/](http://localhost:8080/).
