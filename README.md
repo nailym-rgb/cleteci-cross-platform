@@ -8,14 +8,15 @@ Aplicación Cross Platform con código único base (Web, Android, iOS)
 - [Flutter](https://flutter.dev/).
 - [Android Studio](https://developer.android.com/studio).
 
-## Setup.
+## Configuración del Proyecto.
 
-- Seguir la Guía de [Quickstart de Flutter](https://docs.flutter.dev/get-started/quick).
-- Seguir la Guía de [Android Setup](https://docs.flutter.dev/platform-integration/android/setup).
+- Seguir la Guía de [Inicio Rápido de Flutter](https://docs.flutter.dev/get-started/quick).
+- Seguir la Guía de [Configuración de Android para Flutter](https://docs.flutter.dev/platform-integration/android/setup).
+- Seguir la Guía de [Configuración de iOS para Flutter](https://docs.flutter.dev/platform-integration/ios/setup) (solo para usuarios de MacOS).
 
 ## Ejecución del Proyecto.
 
-En la Guía de [Quickstart de Flutter](https://docs.flutter.dev/get-started/quick) se encuentra cómo ejecutar el proyecto de Flutter en el navegador (Chrome; se inicia una ventana automáticamente). Para ejecutarlo en dispositivos Android, por ejemplo, se siguen los mismos pasos pero cambiando el dispositivo para ejecución del proyecto, como se muestra en la siguiente imagen:
+En la Guía de [Inicio Rápido de Flutter](https://docs.flutter.dev/get-started/quick) se encuentra cómo ejecutar el proyecto de Flutter en el navegador (Chrome; se inicia una ventana automáticamente). Para ejecutarlo en dispositivos Android, por ejemplo, se siguen los mismos pasos pero cambiando el dispositivo para ejecución del proyecto, como se muestra en la siguiente imagen:
 
 ![Selección de Dispositivo en VS Code](select-device.png)
 
