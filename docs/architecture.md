@@ -108,7 +108,7 @@ El *pipeline* se orquestará en **GitHub Actions** y tendrá un flujo de etapas 
 
 ### 4.3. Estructura de Código
 
-Para implementar un nuevo requerimiento, se debe seguir la siguiente estructura.
+A fin de garantizar la coherencia y mantenibilidad del proyecto, la implementación de nuevos requerimientos seguirá la estructura estándar detallada a continuación.
 
 ```
 lib
