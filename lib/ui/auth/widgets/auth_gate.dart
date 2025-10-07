@@ -4,7 +4,7 @@ import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import '../../home/home.dart';
+import 'package:cleteci_cross_platform/ui/homepage/widgets/homepage.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -17,8 +17,9 @@ class AuthGate extends StatelessWidget {
         if (!snapshot.hasData) {
           return SignInScreen(
             providers: [
-              EmailAuthProvider(), 
-              if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ?? false)
+              EmailAuthProvider(),
+              if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ??
+                  false)
                 GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
             ],
             headerBuilder: (context, constraints, shrinkOffset) {
@@ -34,8 +35,12 @@ class AuthGate extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: action == AuthAction.signIn
-                    ? const Text('Welcome to Cleteci Cross Platform, please sign in!')
-                    : const Text('Welcome to Cleteci Cross Platform, please sign up!'),
+                    ? const Text(
+                        'Welcome to Cleteci Cross Platform, please sign in!',
+                      )
+                    : const Text(
+                        'Welcome to Cleteci Cross Platform, please sign up!',
+                      ),
               );
             },
           );
@@ -47,8 +52,9 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-typedef HeaderBuilder = Widget Function(
- BuildContext context,
- BoxConstraints constraints,
- double shrinkOffset,
-);
+typedef HeaderBuilder =
+    Widget Function(
+      BuildContext context,
+      BoxConstraints constraints,
+      double shrinkOffset,
+    );

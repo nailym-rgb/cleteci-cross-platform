@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'ui/auth/widgets/auth_gate.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/auth_gate.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
