@@ -106,6 +106,53 @@ El *pipeline* se orquestará en **GitHub Actions** y tendrá un flujo de etapas 
 
 ---
 
+### 4.3. Estructura de Código
+
+Para implementar un nuevo requerimiento, se debe seguir la siguiente estructura.
+
+```
+lib
+├─┬─ ui
+│ ├─┬─ core
+│ │ ├─┬─ ui
+│ │ │ └─── <shared widgets>             # Ej. CustomButton, Dialog.
+│ │ └─── themes                         # Colores, Fuentes.
+│ └─┬─ <FEATURE NAME>                   # Ej: auth, ocr, speech_to_text
+│   ├─┬─ view_model                     # Lógica de vistas
+│   │ └─── <view_model class>.dart
+│   └─┬─ widgets                        # Widgets de Flutter
+│     ├── <feature name>_screen.dart
+│     └── <other widgets>
+├─┬─ domain
+│ └─┬─ models
+│   └─── <model name>.dart
+├─┬─ data
+│ ├─┬─ repositories                     # Repositorios (datos)
+│ │ └─── <repository class>.dart
+│ ├─┬─ services                         # APIs, LocalStorage, etc
+│ │ └─── <service class>.dart
+│ └─┬─ model                            # Modelos de API (pueden diferir del dominio)
+│   └─── <api model class>.dart
+├─── config                             # Configuraciones generales
+├─── utils                              # Funciones utilitarias compartidas
+├─── routing                            # Rutas de navegación de la app
+├─── main_staging.dart                  # Punto de entrada para staging
+├─── main_development.dart              # Punto de entrada para desarrollo
+└─── main.dart                          # Punto de entrada para producción
+
+# Este directorio contiene pruebas unitarias y pruebas de widgets
+test
+├─── data                               # Pruebas de servicios y repos
+├─── domain                             # Pruebas de modelos puros y lógica
+├─── ui                                 # Pruebas de widgets y view_models
+└─── utils                              # Pruebas de funciones utilitarias
+
+# El directorio testing contiene mocks y otras clases necesarias para ejecutar las pruebas
+testing
+├─── fakes                              # Mocks para servicios, respuestas, etc
+└─── models                             # Modelos simulados para pruebas
+```
+
 ## 5. Requisitos No Funcionales (RNF)
 
 ### 5.1. Requisitos de Performance
