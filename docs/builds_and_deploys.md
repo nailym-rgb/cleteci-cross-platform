@@ -101,12 +101,3 @@ flutter run -d ios
 - **Producción:** Verificar certificados, provisioning profiles y configuración de App Store.
 
 ---
-
-## Validación y Actualización
-- El documento debe ser validado por al menos 1 miembro diferente del equipo.
-- Actualizar este archivo en cada Sprint si se agregan nuevas herramientas o pipelines.
-
----
-
-## Comportamiento esperado
-Otro desarrollador puede clonar el proyecto y compilarlo para los tres entornos siguiendo solo este documento.
