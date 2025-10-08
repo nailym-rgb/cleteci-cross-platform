@@ -25,35 +25,35 @@ El acompañamiento en la adopción de **mejores prácticas metodológicas** (com
 ```mermaid
 graph TD
 %% 1. Definición de Subgráficos para Zonas Lógicas
-subgraph Frontend (Capa del Cliente: Código Único Flutter)
+subgraph Frontend [Capa del Cliente: Código Único Flutter]
     FL[Aplicación Flutter]
-    subgraph Clientes (Plataformas de Usuarios)
-        C1(Web / PWA)
-        C2(iOS)
-        C3(Android)
+    subgraph Clientes [Plataformas de Usuarios]
+        C1[Web / PWA]
+        C2[iOS]
+        C3[Android]
     end
     FL --> C1
     FL --> C2
     FL --> C3
 end
 
-subgraph Backend (Capa de Servicios: Firebase BaaS)
-    DB[Cloud Firestore (DB NoSQL)]
+subgraph Backend [Capa de Servicios: Firebase BaaS]
+    DB[Cloud Firestore: DB NoSQL]
     AUTH[Firebase Authentication]
-    FUNCTIONS[Cloud Functions (Lógica Serverless)]
+    FUNCTIONS[Cloud Functions: Lógica Serverless]
     
     DB -- Almacenamiento --> Storage[Firebase Storage]
     AUTH -- Provee Token JWT --> FUNCTIONS
 end
 
-subgraph DevOps (Flujo de CI/CD: GitHub Actions)
+subgraph DevOps [Flujo de CI/CD: GitHub Actions]
     GH_REPO[GitHub Repository]
-    GH_ACTIONS[GitHub Actions (Workflow YAML)]
+    GH_ACTIONS[GitHub Actions: Workflow YAML]
 end
 
-subgraph Hosting (Infraestructura de Hosting AWS)
-    AWS_HOST[AWS Amplify Hosting (Frontend Web)]
-    AWS_CDN(Amazon CloudFront CDN)
+subgraph Hosting [Infraestructura de Hosting AWS]
+    AWS_HOST[AWS Amplify Hosting: Frontend Web]
+    AWS_CDN[AWS CloudFront CDN]
     AWS_HOST --> AWS_CDN
 end
 
