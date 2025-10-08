@@ -44,7 +44,7 @@ Consulta la guía completa de compilación y despliegue en [`docs/builds_and_dep
 Este proyecto utiliza GitHub Actions para la integración y el despliegue continuo.
 
 ### Pipeline principal
-- Ejecuta pruebas y compila la aplicación en cada push o pull request a ramas principales (`main`, `develop`, `feature/*`).
+- Ejecuta pruebas y compila la aplicación en cada push o pull request a ramas principales (`master`, `develop`, `feature/*`).
 - Compila la imagen de Docker en ramas de desarrollo y producción.
 
 ### Integración con Docker Hub
