@@ -5,21 +5,20 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LocalAuthState extends ChangeNotifier {
-  final LocalAuthentication auth = LocalAuthentication();
+  final LocalAuthentication auth;
   LocalAuthSupportState _supportState = LocalAuthSupportState.unknown;
   bool? _canCheckBiometrics;
   List<BiometricType>? _availableBiometrics;
   String _authorized = 'Not Authorized';
-  bool _isAuthenticating = false;
+  bool isAuthenticating = false;
 
   LocalAuthSupportState get supportState => _supportState;
   bool get canCheckBiometrics => _canCheckBiometrics ?? false;
   List<BiometricType> get availableBiometrics =>
       _availableBiometrics ?? <BiometricType>[];
   String get authorized => _authorized;
-  bool get isAuthenticating => _isAuthenticating;
 
-  LocalAuthState() {
+  LocalAuthState({LocalAuthentication? auth}) : auth = auth ?? LocalAuthentication() {
     _init();
   }
 
@@ -56,7 +55,7 @@ class LocalAuthState extends ChangeNotifier {
 
   Future<void> authenticate() async {
     try {
-      _isAuthenticating = true;
+      isAuthenticating = true;
       _authorized = 'Authenticating';
       notifyListeners();
 
@@ -64,11 +63,11 @@ class LocalAuthState extends ChangeNotifier {
         localizedReason: 'Let OS determine authentication method',
         options: const AuthenticationOptions(stickyAuth: true),
       );
-      _isAuthenticating = false;
+      isAuthenticating = false;
       _authorized = authenticated ? 'Authorized' : 'Not Authorized';
       notifyListeners();
     } on PlatformException catch (e) {
-      _isAuthenticating = false;
+      isAuthenticating = false;
       _authorized = 'Error - ${e.message}';
       notifyListeners();
     }
@@ -76,7 +75,7 @@ class LocalAuthState extends ChangeNotifier {
 
   Future<void> authenticateWithBiometrics() async {
     try {
-      _isAuthenticating = true;
+      isAuthenticating = true;
       _authorized = 'Authenticating';
       notifyListeners();
 
@@ -88,11 +87,11 @@ class LocalAuthState extends ChangeNotifier {
           biometricOnly: true,
         ),
       );
-      _isAuthenticating = false;
+      isAuthenticating = false;
       _authorized = authenticated ? 'Authorized' : 'Not Authorized';
       notifyListeners();
     } on PlatformException catch (e) {
-      _isAuthenticating = false;
+      isAuthenticating = false;
       _authorized = 'Error - ${e.message}';
       notifyListeners();
     }
@@ -100,7 +99,7 @@ class LocalAuthState extends ChangeNotifier {
 
   Future<void> cancelAuthentication() async {
     await auth.stopAuthentication();
-    _isAuthenticating = false;
+    isAuthenticating = false;
     notifyListeners();
   }
 }
