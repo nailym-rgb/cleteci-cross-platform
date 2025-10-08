@@ -20,6 +20,79 @@ El acompañamiento en la adopción de **mejores prácticas metodológicas** (com
 
 ## 2. Definición de la Arquitectura
 
+```mermaid
+graph TD
+    %% 1. Definición de Subgráficos para Zonas Lógicas
+    subgraph Frontend (Capa del Cliente: Código Único Flutter)
+        FL[Aplicación Flutter]
+        subgraph Clientes (Plataformas de Usuarios)
+            C1(Web / PWA)
+            C2(iOS)
+            C3(Android)
+        end
+        FL --> C1
+        FL --> C2
+        FL --> C3
+    end
+    
+    subgraph Backend (Capa de Servicios: Firebase BaaS)
+        DB[Cloud Firestore (DB NoSQL)]
+        AUTH[Firebase Authentication]
+        FUNCTIONS[Cloud Functions (Lógica Serverless)]
+        
+        DB -- Almacenamiento --> Storage[Firebase Storage]
+        AUTH -- Provee Token JWT --> FUNCTIONS
+    end
+    
+    subgraph DevOps (Flujo de CI/CD: GitHub Actions)
+        GH_REPO[GitHub Repository]
+        GH_ACTIONS[GitHub Actions (Workflow YAML)]
+    end
+    
+    subgraph Hosting (Infraestructura de Hosting AWS)
+        AWS_HOST[AWS Amplify Hosting (Frontend Web)]
+        AWS_CDN(Amazon CloudFront CDN)
+        AWS_HOST --> AWS_CDN
+    end
+    
+    %% 2. Definición del Flujo Lógico
+    
+    %% El cliente se comunica con el Backend Serverless
+    FL -- Lee/Escribe Datos --> DB
+    FL -- Acceso Seguro REST --> FUNCTIONS
+    FL -- Login/Sesión --> AUTH
+    
+    %% 3. Definición del Flujo de CI/CD
+    
+    GH_REPO -- 1. Push Code --> GH_ACTIONS
+    
+    %% Despliegue Móvil (iOS/Android)
+    GH_ACTIONS -- 2a. Build iOS/Android --> FASTLANE[Fastlane Tool]
+    FASTLANE -- 3a. Submit .ipa --> AP[App Store Connect]
+    FASTLANE -- 3b. Submit .aab --> GP[Google Play Console]
+    
+    %% Despliegue de Backend (Cloud Functions)
+    GH_ACTIONS -- 2b. Deploy Functions/Rules --> FUNCTIONS
+    
+    %% Despliegue Web (Hosting AWS)
+    GH_ACTIONS -- 2c. Build Web (Artifacts) --> AWS_ACTION[AWS Deployment Action]
+    AWS_ACTION -- 3c. Sincronizar Artifacts --> AWS_HOST
+
+    %% 4. Dependencias Críticas
+    DB -- Requiere Conexión --> FUNCTIONS
+    
+    %% 5. Estándares
+    style FL fill:#02569B,stroke:#000,stroke-width:2px,color:#fff
+    style DB fill:#FFCA28,stroke:#000
+    style AUTH fill:#FF9800,stroke:#000
+    style FUNCTIONS fill:#4285F4,stroke:#000
+    style GH_ACTIONS fill:#6e5494,stroke:#000,color:#fff
+    style AWS_HOST fill:#FF9900,stroke:#000
+    style FASTLANE fill:#c72c41,stroke:#000,color:#fff
+    style AP fill:#5D3A9B,stroke:#000,color:#fff
+    style GP fill:#4CAF50,stroke:#000,color:#fff
+```
+
 ### 2.1. Arquitectura Lógica de Capas (N-Capas)
 
 La arquitectura seleccionada comprende un modelo de **N-Capas con Cliente Cross-Platform**, sustituyendo el cliente WEB tradicional por un cliente Flutter único que genera código para múltiples plataformas.
