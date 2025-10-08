@@ -4,13 +4,19 @@ frontend:
     # 1. Fase de Provisionamiento: Configura el entorno
     preBuild:
       commands:
-        # Descarga e instala el SDK de Flutter
-        - curl -sL https://raw.githubusercontent.com/aws-amplify/amplify-hosting/main/resources/amplify-build-setup/flutter-setup.sh | bash
-        # Añade la variable de entorno FLUTTER_BIN a la PATH
+        # Clona el SDK de Flutter
+        - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+        # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
+        # Verifica la instalación de Flutter
+        - flutter doctor
+        # Habilita el soporte para web
+        - flutter config --enable-web
     # 2. Fase de Compilación: Compila el proyecto
     build:
       commands:
+        # Asegura que Flutter esté en la PATH
+        - export PATH="$PATH:$HOME/flutter/bin"
         # Obtiene las dependencias de pubspec.yaml
         - flutter pub get
         # Compila la aplicación web para producción
@@ -22,4 +28,5 @@ frontend:
     files:
       - '**/*'
   cache:
-    paths: []
+    paths:
+      - $HOME/flutter
