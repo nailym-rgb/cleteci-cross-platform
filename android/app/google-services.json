@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "161404762435",
+    "project_id": "lg-cleteci-cross-platform-test",
+    "storage_bucket": "lg-cleteci-cross-platform-test.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161404762435:android:d856aa6590aba107db17f6",
+        "android_client_info": {
+          "package_name": "com.example.cleteci_cross_platform"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoanO2gzDA8S0Yfr2p4xaxSb1av5g6ZVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

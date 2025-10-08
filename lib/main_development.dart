@@ -14,6 +14,9 @@ Future main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
-    ChangeNotifierProvider(create: (_) => LocalAuthState(), child: const MyApp()),
+    ChangeNotifierProvider(
+      create: (_) => LocalAuthState(),
+      child: const MyApp(),
+    ),
   );
 }
