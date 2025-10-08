@@ -1,0 +1,32 @@
+version: 1
+frontend:
+  phases:
+    # 1. Fase de Provisionamiento: Configura el entorno
+    preBuild:
+      commands:
+        # Clona el SDK de Flutter
+        - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+        # Añade Flutter a la PATH
+        - export PATH="$PATH:$HOME/flutter/bin"
+        # Verifica la instalación de Flutter
+        - flutter doctor
+        # Habilita el soporte para web
+        - flutter config --enable-web
+    # 2. Fase de Compilación: Compila el proyecto
+    build:
+      commands:
+        # Asegura que Flutter esté en la PATH
+        - export PATH="$PATH:$HOME/flutter/bin"
+        # Obtiene las dependencias de pubspec.yaml
+        - flutter pub get
+        # Compila la aplicación web para producción
+        - flutter build web --release
+  # 3. Artefactos: Indica qué archivos subir al hosting
+  artifacts:
+    # El directorio donde 'flutter build web' guarda el resultado
+    baseDirectory: build/web
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - $HOME/flutter
