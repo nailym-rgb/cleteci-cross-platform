@@ -10,9 +10,9 @@ frontend:
         - export PATH="$PATH:$HOME/flutter/bin"
         # Añade .env como asset en pubspec.yaml
         - |
-          sed -i 's/  uses-material-design: true/  uses-material-design: true
+          sed -i 's|  uses-material-design: true|  uses-material-design: true
           assets:
-            - .env/' pubspec.yaml
+            - .env|' pubspec.yaml
         # Crea el archivo .env con las variables de Amplify
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > .env
         - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID_AMPLIFY" >> .env
