@@ -9,10 +9,10 @@ frontend:
         # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
 
-        # 2. 💡 CORRECCIÓN CRÍTICA: Inyectar '.env' como asset usando 'sed'
-        #    Esto inserta 'assets:' y '- .env' con la indentación correcta (2 y 4 espacios)
-        #    justo después de 'uses-material-design: true' en pubspec.yaml.
-        - sed -i '/uses-material-design: true/a \ \ assets:\n\ \ \ \ - .env' pubspec.yaml
+ 
+        # 2. 💡 CORRECCIÓN CRÍTICA DEL ERROR YAML: Toda la línea está entre comillas simples.
+        #    Esto le dice a YAML que ignore el carácter ':' dentro del comando.
+        - 'sed -i "/uses-material-design: true/a \ \ assets:\n\ \ \ \ - .env" pubspec.yaml'
 
          # 💡 Paso clave: Crear el archivo .env con las variables de Amplify
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > .env
