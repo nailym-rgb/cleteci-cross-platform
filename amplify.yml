@@ -8,6 +8,14 @@ frontend:
         - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
         # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
+
+         # 💡 Paso clave: Crear el archivo .env con las variables de Amplify
+        - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > .env
+        - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID_AMPLIFY" >> .env
+        # Repite la línea anterior para todas las variables que necesites
+
+        # Después de crear el .env, debes declararlo como asset en el build
+        - echo "  - .env" >> pubspec.yaml
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
