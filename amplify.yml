@@ -12,8 +12,8 @@ frontend:
         #- "sed -i '/  uses-material-design: true/a\\  assets:\\n    - .env' pubspec.yaml"
         - mkdir -p assets # Asegura que la carpeta assets exista
         # Crea el archivo .env con las variables de Amplify
-        - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" > assets/.env
-        - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> assets/.env
+        - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" > assets/env.vars
+        - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> assets/env.vars
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
