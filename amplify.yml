@@ -8,17 +8,11 @@ frontend:
         - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
         # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
-
- 
-        # 2. 💡 CORRECCIÓN CRÍTICA DEL ERROR YAML: Toda la línea está entre comillas simples.
-        #    Esto le dice a YAML que ignore el carácter ':' dentro del comando.
-        #- 'sed -i "/uses-material-design: true/a \ \ assets:\n\ \ \ \ - .env" pubspec.yaml'
-
-         # 💡 Paso clave: Crear el archivo .env con las variables de Amplify
+        # Añade .env como asset en pubspec.yaml
+        - sed -i '/uses-material-design: true/a\  assets:\n    - .env' pubspec.yaml
+        # Crea el archivo .env con las variables de Amplify
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > .env
         - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID_AMPLIFY" >> .env
-        # Repite la línea anterior para todas las variables que necesites
-
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
