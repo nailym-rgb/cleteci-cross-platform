@@ -1,0 +1,23 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "lg-cleteci-cross-platform-test",
+                    "appId": "1:161404762435:android:d856aa6590aba107db17f6",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "lg-cleteci-cross-platform-test",
+                    "configurations": {
+                        "android": "1:161404762435:android:d856aa6590aba107db17f6",
+                        "ios": "1:161404762435:ios:6ddd108df8135e41db17f6",
+                        "web": "1:161404762435:web:a3a33e9057efc82ddb17f6"
+                    }
+                }
+            }
+        }
+    }
+}
