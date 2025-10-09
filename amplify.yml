@@ -9,11 +9,10 @@ frontend:
         # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
         # Añade .env como asset en pubspec.yaml
-        - "sed -i '/  uses-material-design: true/a\\  assets:\\n    - assets/.env' pubspec.yaml"
+        - "sed -i '/  uses-material-design: true/a\\  assets:\\n    - .env' pubspec.yaml"
         # Crea el archivo .env con las variables de Amplify
-        - mkdir -p assets
-        - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > assets/.env
-        - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID_AMPLIFY" >> assets/.env
+        - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY_AMPLIFY" > .env
+        - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID_AMPLIFY" >> .env
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
