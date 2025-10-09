@@ -2,59 +2,55 @@
 
 Aplicación Cross Platform con código único base (Web, Android, iOS)
 
-## Requisitos.
+## Información General
 
-- [VSCode](https://code.visualstudio.com/).
-- [Flutter](https://flutter.dev/).
-- [Android Studio](https://developer.android.com/studio).
+Proyecto Flutter multiplataforma para Web, Android e iOS. Utiliza Firebase como backend y soporta despliegue en Docker y CI/CD con GitHub Actions.
 
-## Setup.
+## Requisitos Rápidos
+- [VSCode](https://code.visualstudio.com/)
+- [Flutter](https://flutter.dev/)
+- [Android Studio](https://developer.android.com/studio)
+- (Opcional) Docker
 
-- Seguir la Guía de [Quickstart de Flutter](https://docs.flutter.dev/get-started/quick).
-- Seguir la Guía de [Android Setup](https://docs.flutter.dev/platform-integration/android/setup).
+## Despliegue Rápido
 
-## Ejecución del Proyecto.
+1. Instala dependencias:
+   ```pwsh
+   flutter pub get
+   ```
+2. Ejecuta en Web:
+   ```pwsh
+   flutter run -d chrome
+   ```
+3. Ejecuta en Android:
+   ```pwsh
+   flutter run -d android
+   ```
+4. Ejecuta en iOS (solo macOS):
+   ```pwsh
+   flutter run -d ios
+   ```
+5. Despliegue con Docker:
+   ```pwsh
+   docker-compose up --build -d
+   ```
 
-En la Guía de [Quickstart de Flutter](https://docs.flutter.dev/get-started/quick) se encuentra cómo ejecutar el proyecto de Flutter en el navegador (Chrome; se inicia una ventana automáticamente). Para ejecutarlo en dispositivos Android, por ejemplo, se siguen los mismos pasos pero cambiando el dispositivo para ejecución del proyecto, como se muestra en la siguiente imagen:
+## Documentación Detallada
 
-![Selección de Dispositivo en VS Code](select-device.png)
+Consulta la guía completa de compilación y despliegue en [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md).
 
-### Ejecución de Proyecto Web con Docker.
+## CI/CD y Docker Hub
 
-Ejecutamos el siguiente comando para hacer *build* del contenedor de Docker:
+Este proyecto utiliza GitHub Actions para la integración y el despliegue continuo.
 
-```
-docker-compose up --build -d
-```
-
-Debemos ver el siguiente mensaje indicando que se creó el contenedor:
-
-![Contenedor Creado por Consola](created-container.png)
-
-En Docker Desktop, podremos ver lo siguiente:
-
-![Contenedor en Ejecución en Docker Desktop](docker-desktop-running-container.png)
-
-## Pipeline de CI/CD
-
-Este proyecto utiliza GitHub Actions para la integración y el despliegue continuos.
-
-### Desencadenantes del flujo de trabajo
-
-La canalización de integración continua (CI) se ejecuta en:
-- Envíos a las ramas principal, maestra, de desarrollo y de características
-- Solicitudes de extracción dirigidas a estas ramas
-
-### Job
-
-- **test**: Configura Flutter, instala dependencias, ejecuta pruebas y compila la aplicación web
-- **build-docker**: Compila la imagen de Docker (solo en envíos a las ramas maestra o de desarrollo)
+### Pipeline principal
+- Ejecuta pruebas y compila la aplicación en cada push o pull request a ramas principales (`master`, `develop`, `feature/*`).
+- Compila la imagen de Docker en ramas de desarrollo y producción.
 
 ### Integración con Docker Hub
+1. Crea una cuenta en [Docker Hub](https://hub.docker.com/).
+2. Genera un token de acceso en la configuración de tu cuenta.
+3. Agrega los secretos `DOCKER_USERNAME` y `DOCKER_PASSWORD` en el repositorio de GitHub.
+4. Descomenta los pasos de Docker Hub en `.github/workflows/ci.yml` para habilitar el push automático.
 
-Para habilitar los envíos automáticos de Docker Hub:
-1. Crea una cuenta de Docker Hub en https://hub.docker.com/
-2. Genera un token de acceso en Configuración de la cuenta > Seguridad
-3. Agrega `DOCKER_USERNAME` y `DOCKER_PASSWORD` como secretos del repositorio en GitHub
-4. Descomenta los pasos de Docker Hub en `.github/workflows/ci.yml`
-Para ver el proyecto, vamos a la siguiente URL: [http://localhost:8080/](http://localhost:8080/).
+Para más detalles y pasos avanzados, consulta [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md).
