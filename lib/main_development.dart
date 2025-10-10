@@ -7,13 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'app.dart';
 
-Future<void> main() async {
-  try {
-    await dotenv.load(fileName: 'assets/env.vars');
-  } on FileNotFoundError catch (_) {
-    // Handle the case where the .env file is not found,
-    // for now, we're doing nothing.
-  }
+Future main() async {
+  await dotenv.load(fileName: '.env');
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
