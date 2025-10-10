@@ -9,14 +9,14 @@ class LocalAuthState extends ChangeNotifier {
   LocalAuthSupportState _supportState = LocalAuthSupportState.unknown;
   bool? _canCheckBiometrics;
   List<BiometricType>? _availableBiometrics;
-  String _authorized = 'Not Authorized';
+  LocalAuthStateValues _authorized = LocalAuthStateValues.unauthorized;
   bool isAuthenticating = false;
 
   LocalAuthSupportState get supportState => _supportState;
   bool get canCheckBiometrics => _canCheckBiometrics ?? false;
   List<BiometricType> get availableBiometrics =>
       _availableBiometrics ?? <BiometricType>[];
-  String get authorized => _authorized;
+  LocalAuthStateValues get authorized => _authorized;
 
   LocalAuthState({LocalAuthentication? auth}) : auth = auth ?? LocalAuthentication() {
     _init();
@@ -56,7 +56,7 @@ class LocalAuthState extends ChangeNotifier {
   Future<void> authenticate() async {
     try {
       isAuthenticating = true;
-      _authorized = 'Authenticating';
+      _authorized = LocalAuthStateValues.loading;
       notifyListeners();
 
       final authenticated = await auth.authenticate(
@@ -64,11 +64,11 @@ class LocalAuthState extends ChangeNotifier {
         options: const AuthenticationOptions(stickyAuth: true),
       );
       isAuthenticating = false;
-      _authorized = authenticated ? 'Authorized' : 'Not Authorized';
+      _authorized = authenticated ? LocalAuthStateValues.authorized : LocalAuthStateValues.unauthorized;
       notifyListeners();
     } on PlatformException catch (e) {
       isAuthenticating = false;
-      _authorized = 'Error - ${e.message}';
+      _authorized = LocalAuthStateValues.error;
       notifyListeners();
     }
   }
@@ -76,23 +76,23 @@ class LocalAuthState extends ChangeNotifier {
   Future<void> authenticateWithBiometrics() async {
     try {
       isAuthenticating = true;
-      _authorized = 'Authenticating';
+      _authorized = LocalAuthStateValues.loading;
       notifyListeners();
 
       final authenticated = await auth.authenticate(
         localizedReason:
-            'Scan your fingerprint (or face or whatever) to authenticate',
+            'Scan your fingerprint or face to authenticate',
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
         ),
       );
       isAuthenticating = false;
-      _authorized = authenticated ? 'Authorized' : 'Not Authorized';
+      _authorized = authenticated ? LocalAuthStateValues.authorized : LocalAuthStateValues.unauthorized;
       notifyListeners();
     } on PlatformException catch (e) {
       isAuthenticating = false;
-      _authorized = 'Error - ${e.message}';
+      _authorized = LocalAuthStateValues.error;
       notifyListeners();
     }
   }
@@ -105,3 +105,4 @@ class LocalAuthState extends ChangeNotifier {
 }
 
 enum LocalAuthSupportState { unknown, supported, unsupported }
+enum LocalAuthStateValues { authorized, error, loading, unauthorized }

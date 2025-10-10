@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 
@@ -54,6 +55,40 @@ class _HomepageState extends State<Homepage> {
         // Here we take the value from the Homepage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () async {
+              if (appState.supportState == LocalAuthSupportState.supported) {
+                await appState.authenticateWithBiometrics();
+              }
+
+              if (!context.mounted) return;
+
+              // Since we're not handling sensitive data, we just navigate to
+              // the profile screen if the device does not support biometric
+              // authentication.
+              if (appState.authorized == LocalAuthStateValues.authorized ||
+                  appState.supportState == LocalAuthSupportState.unsupported) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<ProfileScreen>(
+                    builder: (context) => ProfileScreen(
+                      appBar: AppBar(title: const Text('User Profile')),
+                      actions: [
+                        SignedOutAction((context) {
+                          Navigator.of(context).pop();
+                        }),
+                      ],
+                      children: [const Divider()],
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Scrollbar(
