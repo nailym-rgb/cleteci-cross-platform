@@ -1,23 +1,18 @@
-# .github/workflows/docs-pages.yml
-
 name: Despliegue de Documentación a GitHub Pages (MkDocs)
 
-# Define el evento que dispara el workflow.
 on:
   push:
     branches:
-      - main  # Ejecutar cuando hay un push en la rama principal
+      - develop
     paths:
-      - 'docs/**' # Solo si hay cambios en la carpeta de documentación
-      - 'mkdocs.yml' # O si cambia el archivo de configuración
+      - 'docs/**'
+      - 'mkdocs.yml' 
 
-# Permisos requeridos para que la acción de Pages pueda publicar.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Un job por defecto que se requiere para la acción de Pages.
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,7 +21,7 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necesario para leer el historial completo si MkDocs lo requiere
+          fetch-depth: 0
 
       # Paso 2: Configurar Python (MkDocs requiere Python)
       - name: Configurar Python
