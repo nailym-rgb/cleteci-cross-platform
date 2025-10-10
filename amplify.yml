@@ -14,6 +14,7 @@ frontend:
         # Crea el archivo .env con las variables de Amplify
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" > assets/env.vars
         - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> assets/env.vars
+        - echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" >> assets/env.vars
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
