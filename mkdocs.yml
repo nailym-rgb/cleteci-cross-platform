@@ -1,0 +1,54 @@
+# ===============================
+# METADATOS DEL SITIO
+# ===============================
+site_name: Documentación de Arquitectura - CRM Flutter/Firebase
+site_description: Documentación técnica del stack, arquitectura y lineamientos de desarrollo del proyecto.
+site_url: https://nailym-rgb.github.io/cleteci-cross-platform/
+repo_url: https://github.com/nailym-rgb/cleteci-cross-platform
+repo_name: GitHub
+
+# ===============================
+# NAVEGACIÓN (Estructura del Libro)
+# ===============================
+nav:
+    - 1. Arquitectura: architecture.md
+    - 2. Lineamientos de Desarrollo: architecture.md
+    - 3. DevOps (CI/CD): builds_and_deploys.md
+    - 4. Testing y QA: TESTING.md
+
+# ===============================
+# TEMA Y APARIENCIA (Material for MkDocs)
+# ===============================
+theme:
+    name: material
+    features:
+      - content.code.annotate  # Soporte para anotaciones de código
+      - content.tabs.link     # Enlaza pestañas
+      - navigation.instant    # Navegación rápida (SPA)
+      - navigation.sections   # Agrupa secciones grandes en la navegación
+      - navigation.tabs       # Pestañas de navegación superiores
+      - toc.integrate         # Integra la tabla de contenido en el menú lateral
+    palette:
+        # Puedes definir colores aquí
+        primary: deep purple
+        accent: amber
+    language: es
+
+# ===============================
+# EXTENSIONES DE MARKDOWN (Soporte para Mermaid)
+# ===============================
+markdown_extensions:
+    - pymdownx.superfences:
+        custom_fences:
+          - name: mermaid
+            class: mermaid
+            format: !!python/name:pymdownx.superfences.fence_code_format
+            
+    - admonition        # Permite notas, advertencias y consejos estilizados (ej. !!! note, !!! danger)
+    - attr_list         # Permite añadir atributos HTML (ej. IDs, clases)
+    - pymdownx.details  # Bloques de contenido colapsables
+    - pymdownx.emoji:
+        emoji_index: !!python/name:material.extensions.emoji.twemoji
+        emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    - toc:              # Tabla de Contenido
+        permalink: true # Enlaces permanentes a títulos
