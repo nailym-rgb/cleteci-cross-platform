@@ -20,8 +20,6 @@ El acompañamiento en la adopción de **mejores prácticas metodológicas** (com
 
 ## 2. Definición de la Arquitectura
 
-## 2. Definición de la Arquitectura
-
 ```mermaid
 graph TD
 %% 1. Definición de Subgráficos para Zonas Lógicas
