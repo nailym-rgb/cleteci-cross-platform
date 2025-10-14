@@ -23,7 +23,8 @@ jobs:
       with:
         coverage-files: coverage/lcov.info
         minimum-coverage: 80
-        artifact-name: code-coverage-report-${{ github.run_id }}
+        artifact-name: code-coverage-report
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     # - name: Upload coverage to Codecov
     #   uses: codecov/codecov-action@v3
     #   with:
