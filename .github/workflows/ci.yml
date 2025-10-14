@@ -20,19 +20,28 @@ jobs:
     - run: flutter build web
     - name: Setup LCOV
       uses: hrishikesh-kadam/setup-lcov@v1
-    - name: Report Code Coverage
-      uses: zgosalvez/github-actions-report-lcov@v3
-      with:
-        coverage-files: coverage/lcov.info
-        minimum-coverage: 80
-        artifact-name: code-coverage-report
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Upload coverage to Codecov
-    #   uses: codecov/codecov-action@v3
+    # - name: Report Code Coverage
+    #   uses: zgosalvez/github-actions-report-lcov@v3
     #   with:
-    #     file: ./coverage/lcov.info
-    #     fail_ci_if_error: false
-
+    #     coverage-files: coverage/lcov.info
+    #     minimum-coverage: 80
+    #     artifact-name: code-coverage-report
+    #     github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        fail_ci_if_error: false
+    - name: Check 80% Coverage Minimum (Alternativa)
+      run: |
+        coverage_percent=$(awk '/^overall coverage:/ {print $3}' coverage/lcov.info | sed 's/[^0-9.]//g')
+        if (( $(echo "$coverage_percent < 80.0" | bc -l) )); then
+          echo "❌ ERROR: La cobertura de código es del $coverage_percent%, y se requiere un 80%."
+          exit 1
+        else
+          echo "✅ Cobertura OK: $coverage_percent%"
+        fi
+      shell: bash # Asegúrate de usar bash
   build-docker:
     runs-on: ubuntu-latest
     needs: test
