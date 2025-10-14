@@ -16,12 +16,19 @@ jobs:
     - run: echo "${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > .env
     - run: flutter test --coverage
     - run: flutter build web
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+    - name: Setup LCOV
+      uses: hrishikesh-kadam/setup-lcov@v1
+    - name: Report Code Coverage
+      uses: zgosalvez/github-actions-report-lcov@v3
       with:
-        file: ./coverage/lcov.info
-        fail_ci_if_error: true
-        minimum_coverage: 80
+        coverage-files: coverage/lcov.info
+        minimum-coverage: 80
+        artifact-name: code-coverage-report
+    # - name: Upload coverage to Codecov
+    #   uses: codecov/codecov-action@v3
+    #   with:
+    #     file: ./coverage/lcov.info
+    #     fail_ci_if_error: false
 
   build-docker:
     runs-on: ubuntu-latest
