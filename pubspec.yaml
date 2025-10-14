@@ -56,6 +56,11 @@ dev_dependencies:
   mockito: ^5.5.1
   build_runner: ^2.9.0
 
+scripts:
+ test: flutter test
+ test:coverage: flutter test --coverage
+ coverage: genhtml coverage/lcov.info -o coverage/html
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
