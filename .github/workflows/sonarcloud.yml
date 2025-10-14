@@ -31,9 +31,26 @@ jobs:
       - name: Run Tests and Generate LCOV Report
         run: flutter test --coverage
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
+      - name: Execute SonarCloud Scan (Manual CLI)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: .
+          # Define la URL de tu servidor de SonarCloud
+          SONAR_HOST_URL: "https://sonarcloud.io" 
+        run: |
+          # 1. Configuración de variables (usa la versión que te sugiera SonarCloud)
+          export SONAR_SCANNER_VERSION=7.2.0.5079
+          export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux-x64
+
+          # 2. Descarga y Descomprime el SonarScanner
+          echo "Descargando SonarScanner CLI..."
+          curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux-x64.zip
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+
+          # 3. Agrega el SonarScanner al PATH
+          export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+
+          # 4. Ejecuta el Análisis
+          # El escáner leerá automáticamente sonar-project.properties en el directorio actual.
+          sonar-scanner \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN 
