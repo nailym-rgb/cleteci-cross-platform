@@ -12,7 +12,7 @@ void main() {
     });
 
     test('initial state should be unauthorized', () {
-      expect(authState.authorized, LocalAuthStateValues.unauthorized);
+      expect(authState.authorized, LocalAuthStateValue.unauthorized);
     });
 
     test('initial support state should be unknown', () {
