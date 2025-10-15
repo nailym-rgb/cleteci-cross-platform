@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'package:cleteci_cross_platform/ui/homepage/widgets/homepage.dart';
+import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -57,7 +57,7 @@ class AuthGate extends StatelessWidget {
               );
             }
             
-            return const Homepage(title: 'Cleteci Cross Platform Homepage');
+            return const DefaultPage(title: 'Cleteci Cross Platform Homepage');
           },
         );
       },
