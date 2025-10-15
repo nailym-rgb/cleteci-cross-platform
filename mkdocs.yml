@@ -12,9 +12,8 @@ repo_name: GitHub
 # ===============================
 nav:
     - 1. Arquitectura: architecture.md
-    - 2. Lineamientos de Desarrollo: architecture.md
-    - 3. DevOps (CI/CD): builds_and_deploys.md
-    - 4. Testing y QA: TESTING.md
+    - 2. DevOps (CI/CD): builds_and_deploys.md
+    - 3. Testing y QA: testing.md
 
 # ===============================
 # TEMA Y APARIENCIA (Material for MkDocs)
