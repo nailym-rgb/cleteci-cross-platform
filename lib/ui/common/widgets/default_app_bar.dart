@@ -26,6 +26,35 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         ? Firebase.initializeApp()
         : Future.value();
 
+    void handleOnPressedProfile() async {
+      if (appState.supportState == LocalAuthSupportState.supported) {
+        await appState.authenticateWithBiometrics();
+      }
+
+      if (!context.mounted) return;
+
+      // Since we're not handling sensitive data, we just navigate to
+      // the profile screen if the device does not support biometric
+      // authentication.
+      if (appState.authorized == LocalAuthStateValue.authorized ||
+          appState.supportState == LocalAuthSupportState.unsupported) {
+        Navigator.push(
+          context,
+          MaterialPageRoute<ProfileScreen>(
+            builder: (context) => ProfileScreen(
+              appBar: AppBar(title: const Text('User Profile')),
+              actions: [
+                SignedOutAction((context) {
+                  Navigator.of(context).pop();
+                }),
+              ],
+              children: const [Divider()],
+            ),
+          ),
+        );
+      }
+    }
+
     return FutureBuilder(
       future: futureBuilder,
       builder: (context, snapshot) {
@@ -59,39 +88,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                   ? [
                       IconButton(
                         icon: const Icon(Icons.person),
-                        onPressed: () async {
-                          if (appState.supportState ==
-                              LocalAuthSupportState.supported) {
-                            await appState.authenticateWithBiometrics();
-                          }
-
-                          if (!context.mounted) return;
-
-                          // Since we're not handling sensitive data, we just navigate to
-                          // the profile screen if the device does not support biometric
-                          // authentication.
-                          if (appState.authorized ==
-                                  LocalAuthStateValue.authorized ||
-                              appState.supportState ==
-                                  LocalAuthSupportState.unsupported) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<ProfileScreen>(
-                                builder: (context) => ProfileScreen(
-                                  appBar: AppBar(
-                                    title: const Text('User Profile'),
-                                  ),
-                                  actions: [
-                                    SignedOutAction((context) {
-                                      Navigator.of(context).pop();
-                                    }),
-                                  ],
-                                  children: const [Divider()],
-                                ),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: handleOnPressedProfile,
                       ),
                     ]
                   : null,
