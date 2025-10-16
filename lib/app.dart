@@ -12,9 +12,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: appTitle,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          primary: const Color.fromARGB(255, 96, 165, 250),
+          seedColor: Color(0xFF0000FF),
+          secondary: Colors.white,
+        ),
+        useMaterial3: true,
       ),
-      home: AuthGate(),
+      home: const AuthGate(),
     );
   }
 }
