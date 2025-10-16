@@ -76,7 +76,7 @@ class AuthGate extends StatelessWidget {
                       ],
                       headerBuilder: (context, constraints, shrinkOffset) {
                         return Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: SvgPicture.asset('assets/cleteci_logo.svg'),
