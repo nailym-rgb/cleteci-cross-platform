@@ -69,29 +69,32 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
           builder: (context, snapshot) {
             bool isLoggedIn = snapshot.hasData;
 
+            if (!isLoggedIn) {
+              return AppBar(
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                title: Text(widget.title),
+              );
+            }
+
             return AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               title: Text(widget.title),
-              leading: isLoggedIn
-                  ? Builder(
-                      builder: (context) {
-                        return IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: () {
-                            Scaffold.of(context).openDrawer();
-                          },
-                        );
-                      },
-                    )
-                  : null,
-              actions: isLoggedIn
-                  ? [
-                      IconButton(
-                        icon: const Icon(Icons.person),
-                        onPressed: handleOnPressedProfile,
-                      ),
-                    ]
-                  : null,
+              leading: Builder(
+                builder: (context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
+                },
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person),
+                  onPressed: handleOnPressedProfile,
+                ),
+              ],
               automaticallyImplyLeading: false,
             );
           },
