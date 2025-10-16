@@ -1,160 +1,160 @@
-# E2E Testing Setup with Cypress
+# Configuración de Pruebas E2E con Cypress
 
-This document explains how to set up and run End-to-End (E2E) tests for the Flutter web application using Cypress.
+Este documento explica cómo configurar y ejecutar pruebas End-to-End (E2E) para la aplicación web Flutter usando Cypress.
 
-## Prerequisites
+## Prerrequisitos
 
-- Node.js 18+ and npm
+- Node.js 18+ y npm
 - Flutter SDK
-- The Flutter web app built and ready
+- La aplicación Flutter web compilada y lista
 
-### Installing Node.js (if not installed)
+### Instalando Node.js (si no está instalado)
 
 ```bash
-# Using the script added to pubspec.yaml
+# Usando el script agregado al pubspec.yaml
 flutter pub run pubspec install:node
 
-# Or manually:
+# O manualmente:
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# Verify installation
+# Verificar instalación
 node --version
 npm --version
 ```
 
-## Amplify Deployment
+## Despliegue en Amplify
 
-The E2E tests are automatically integrated into your Amplify deployment pipeline. The `amplify.yml` configuration includes:
+Las pruebas E2E están integradas automáticamente en el pipeline de despliegue de Amplify. La configuración `amplify.yml` incluye:
 
-1. **preBuild**: Installs Flutter SDK and Node.js
-2. **build**: Compiles the Flutter web app
-3. **test**: Runs E2E tests before deployment
-4. **artifacts**: Deploys the built app
+1. **preBuild**: Instala Flutter SDK y Node.js
+2. **build**: Compila la aplicación Flutter web
+3. **test**: Ejecuta pruebas E2E antes del despliegue
+4. **artifacts**: Despliega la aplicación compilada
 
-### E2E Tests in Amplify
+### Pruebas E2E en Amplify
 
-- Tests run automatically on every deployment
-- Uses headless Chrome browser
-- No video recording to avoid timeouts
-- Tests must pass for deployment to succeed
-- Results are available in Amplify build logs
+- Las pruebas se ejecutan automáticamente en cada despliegue
+- Usa navegador Chrome headless
+- Sin grabación de video para evitar timeouts
+- Las pruebas deben pasar para que el despliegue sea exitoso
+- Los resultados están disponibles en los logs de build de Amplify
 
-## Installation
+## Instalación
 
-1. Install Node.js dependencies:
+1. Instalar dependencias de Node.js:
    ```bash
    npm install
    ```
 
-2. Build the Flutter web app:
+2. Construir la aplicación Flutter web:
    ```bash
    flutter pub get
    flutter build web --release --pwa-strategy none
    ```
 
-## Running Tests
+## Ejecutando Pruebas
 
-### Local Development
+### Desarrollo Local
 
-1. Start the Flutter web server:
+1. Iniciar el servidor web Flutter:
    ```bash
    flutter pub global activate dhttpd
    flutter pub global run dhttpd --path build/web --port 8080
    ```
 
-2. In another terminal, run Cypress tests:
+2. En otra terminal, ejecutar pruebas Cypress:
    ```bash
-   npm run cy:open  # Opens Cypress Test Runner (interactive)
-   # or
-   npm run cy:run   # Runs tests headlessly
+   npm run cy:open  # Abre Cypress Test Runner (interactivo)
+   # o
+   npm run cy:run   # Ejecuta pruebas sin interfaz
    ```
 
-### Using Scripts
+### Usando Scripts
 
-The project includes convenient scripts in `pubspec.yaml`:
+El proyecto incluye scripts convenientes en `pubspec.yaml`:
 
 ```bash
-# Setup everything for E2E testing
+# Configurar todo para pruebas E2E
 flutter pub run pubspec test:e2e:setup
 
-# Run E2E tests (assumes server is running)
+# Ejecutar pruebas E2E (asume que el servidor está corriendo)
 flutter pub run pubspec test:e2e
 ```
 
-## Test Structure
+## Estructura de Pruebas
 
 ```
 cypress/
 ├── e2e/
-│   ├── app_load.cy.js      # Basic app loading tests
-│   ├── auth_flow.cy.js     # Authentication flow tests
-│   └── navigation.cy.js    # Navigation and routing tests
+│   ├── app_load.cy.js      # Pruebas básicas de carga de app
+│   ├── auth_flow.cy.js     # Pruebas de flujo de autenticación
+│   └── navigation.cy.js    # Pruebas de navegación y rutas
 ├── support/
-│   ├── commands.js         # Custom Cypress commands
-│   └── e2e.js             # Global test configuration
-└── fixtures/               # Test data fixtures
+│   ├── commands.js         # Comandos personalizados de Cypress
+│   └── e2e.js             # Configuración global de pruebas
+└── fixtures/               # Datos de prueba
 ```
 
-## Custom Commands
+## Comandos Personalizados
 
-The following custom commands are available in `cypress/support/commands.js`:
+Los siguientes comandos personalizados están disponibles en `cypress/support/commands.js`:
 
-- `cy.login(email, password)` - Login with credentials
-- `cy.logout()` - Logout user
-- `cy.waitForFlutter()` - Wait for Flutter app to load
-- `cy.loginWithGoogle()` - Handle Google OAuth login
+- `cy.login(email, password)` - Iniciar sesión con credenciales
+- `cy.logout()` - Cerrar sesión del usuario
+- `cy.waitForFlutter()` - Esperar a que la app Flutter cargue
+- `cy.loginWithGoogle()` - Manejar login OAuth de Google
 
-## Configuration
+## Configuración
 
-- **Base URL**: `http://localhost:8080` (configured in `cypress.config.js`)
-- **Viewport**: 1280x720 (desktop testing)
-- **Timeouts**: 10s default, 15s request, 15s response
-- **Retries**: 2 runs, 0 open mode
+- **URL Base**: `http://localhost:8080` (configurado en `cypress.config.js`)
+- **Viewport**: 1280x720 (pruebas de escritorio)
+- **Timeouts**: 10s por defecto, 15s para requests, 15s para responses
+- **Reintentos**: 2 para modo ejecución, 0 para modo abierto
 
-## CI/CD Integration
+## Integración CI/CD
 
-E2E tests are automatically run in GitHub Actions on pushes to `master` and `develop` branches after unit tests pass. The workflow:
+Las pruebas E2E se ejecutan automáticamente en GitHub Actions en pushes a las ramas `master` y `develop` después de que pasan las pruebas unitarias. El workflow:
 
-1. Builds the Flutter web app
-2. Starts a local server
-3. Installs Cypress dependencies
-4. Runs E2E tests
-5. Uploads test artifacts (videos/screenshots) on failure
+1. Construye la aplicación Flutter web
+2. Inicia un servidor local
+3. Instala dependencias de Cypress
+4. Ejecuta pruebas E2E
+5. Sube artifacts de pruebas (videos/screenshots) en caso de fallo
 
-## Writing New Tests
+## Escribiendo Nuevas Pruebas
 
-1. Create new test files in `cypress/e2e/` with `.cy.js` extension
-2. Use data-cy attributes for element selection in your Flutter widgets
-3. Leverage custom commands for common actions
-4. Follow the Page Object Model pattern for complex tests
+1. Crear nuevos archivos de prueba en `cypress/e2e/` con extensión `.cy.js`
+2. Usar atributos `data-cy` para selección de elementos en tus widgets Flutter
+3. Aprovechar comandos personalizados para acciones comunes
+4. Seguir el patrón Page Object Model para pruebas complejas
 
-Example test structure:
+Ejemplo de estructura de prueba:
 ```javascript
-describe('Feature Name', () => {
+describe('Nombre de Característica', () => {
   beforeEach(() => {
     cy.waitForFlutter()
-    // Setup code
+    // Código de configuración
   })
 
-  it('should do something', () => {
-    // Test code
+  it('debería hacer algo', () => {
+    // Código de prueba
   })
 })
 ```
 
-## Troubleshooting
+## Solución de Problemas
 
-- **Server not starting**: Ensure port 8080 is available
-- **Tests timing out**: Increase timeouts in `cypress.config.js`
-- **Elements not found**: Add `data-cy` attributes to Flutter widgets
-- **CORS issues**: Configure proper headers in the web server
+- **Servidor no inicia**: Asegurarse de que el puerto 8080 esté disponible
+- **Pruebas con timeout**: Aumentar timeouts en `cypress.config.js`
+- **Elementos no encontrados**: Agregar atributos `data-cy` a widgets Flutter
+- **Problemas de CORS**: Configurar headers apropiados en el servidor web
 
-## Best Practices
+## Mejores Prácticas
 
-- Use descriptive test names
-- Keep tests independent and isolated
-- Use custom commands for reusable actions
-- Add proper waiting mechanisms for async operations
-- Test both positive and negative scenarios
-- Keep test data separate from test logic
+- Usar nombres descriptivos para las pruebas
+- Mantener pruebas independientes y aisladas
+- Usar comandos personalizados para acciones reutilizables
+- Agregar mecanismos de espera apropiados para operaciones asíncronas
+- Probar escenarios positivos y negativos
+- Mantener datos de prueba separados de la lógica de pruebas
