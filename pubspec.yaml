@@ -58,9 +58,14 @@ dev_dependencies:
   build_runner: ^2.9.0
 
 scripts:
- test: flutter test
- test:coverage: flutter test --coverage
- coverage: genhtml coverage/lcov.info -o coverage/html
+  test: flutter test
+  test:coverage: flutter test --coverage
+  coverage: genhtml coverage/lcov.info -o coverage/html
+  build:web: flutter build web --release --pwa-strategy none
+  serve:web: flutter pub global activate dhttpd && flutter pub global run dhttpd --path build/web --port 8080
+  test:e2e: npm run test:e2e
+  test:e2e:setup: flutter pub get && npm install && flutter build web --release --pwa-strategy none
+  install:node: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
