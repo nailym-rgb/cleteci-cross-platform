@@ -30,7 +30,7 @@ class AuthGate extends StatelessWidget {
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return Scaffold(
-                appBar: DefaultAppBar(title: 'Sign In'),
+                appBar: const DefaultAppBar(title: 'Sign In'),
                 body: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 500),
@@ -44,7 +44,7 @@ class AuthGate extends StatelessWidget {
                             MaterialPageRoute<ForgotPasswordScreen>(
                               builder: (context) {
                                 return Scaffold(
-                                  appBar: DefaultAppBar(
+                                  appBar: const DefaultAppBar(
                                     title: 'Forgotten Password',
                                   ),
                                   body: Center(
@@ -84,9 +84,9 @@ class AuthGate extends StatelessWidget {
                         );
                       },
                       subtitleBuilder: (context, action) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: const Text(
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(
                             'Welcome to Cleteci Cross Platform, please sign in!',
                           ),
                         );
@@ -106,7 +106,7 @@ class AuthGate extends StatelessWidget {
                                     MaterialPageRoute<RegisterScreen>(
                                       builder: (context) {
                                         return Scaffold(
-                                          appBar: DefaultAppBar(
+                                          appBar: const DefaultAppBar(
                                             title: 'Register',
                                           ),
                                           body: Center(
@@ -114,7 +114,7 @@ class AuthGate extends StatelessWidget {
                                               constraints: const BoxConstraints(
                                                 maxWidth: 500,
                                               ),
-                                              child: Register(),
+                                              child: const Register(),
                                             ),
                                           ),
                                         );
