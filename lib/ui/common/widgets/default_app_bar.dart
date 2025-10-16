@@ -14,7 +14,7 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
   State<DefaultAppBar> createState() => _DefaultAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(60);
+  Size get preferredSize => const Size.fromHeight(60);
 }
 
 class _DefaultAppBarState extends State<DefaultAppBar> {
@@ -81,7 +81,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                                 Navigator.of(context).pop();
                               }),
                             ],
-                            children: [const Divider()],
+                            children: const [Divider()],
                           ),
                         ),
                       );

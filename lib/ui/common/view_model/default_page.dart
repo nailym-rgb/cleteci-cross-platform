@@ -1,4 +1,3 @@
-
 import 'package:cleteci_cross_platform/ui/common/widgets/page_component.dart';
 import 'package:flutter/material.dart';
 
@@ -26,32 +25,32 @@ class DrawerEntryDestination {
 }
 
 final List<DrawerEntryDestination> appDestinations = <DrawerEntryDestination>[
-  DrawerEntryDestination(
+  const DrawerEntryDestination(
     0,
     'Dashboard',
     false,
-    const Icon(Icons.widgets_outlined),
-    const Icon(Icons.widgets),
+    Icon(Icons.widgets_outlined),
+    Icon(Icons.widgets),
   ),
-  DrawerEntryDestination(
+  const DrawerEntryDestination(
     1,
     'OCR',
     false,
     Icon(Icons.format_paint_outlined),
     Icon(Icons.format_paint),
   ),
-  DrawerEntryDestination(
+  const DrawerEntryDestination(
     2,
     'Speech to Text',
     false,
     Icon(Icons.format_paint_outlined),
     Icon(Icons.format_paint),
   ),
-  DrawerEntryDestination(
+  const DrawerEntryDestination(
     3,
     'Settings',
     false,
-    const Icon(Icons.settings_outlined),
-    const Icon(Icons.settings),
+    Icon(Icons.settings_outlined),
+    Icon(Icons.settings),
   ),
 ];
