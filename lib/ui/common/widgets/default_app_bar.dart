@@ -22,8 +22,12 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
   Widget build(BuildContext context) {
     final appState = Provider.of<LocalAuthState>(context);
 
+    Future<dynamic> futureBuilder = Firebase.apps.isEmpty
+        ? Firebase.initializeApp()
+        : Future.value();
+
     return FutureBuilder(
-      future: Firebase.apps.isEmpty ? Firebase.initializeApp() : Future.value(),
+      future: futureBuilder,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           // Show a loading indicator while Firebase initializes
@@ -34,61 +38,63 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         return StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
-              );
-            }
+            bool isLoggedIn = snapshot.hasData;
 
             return AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               title: Text(widget.title),
-              leading: Builder(
-                builder: (context) {
-                  return IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                  );
-                },
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.person),
-                  onPressed: () async {
-                    if (appState.supportState ==
-                        LocalAuthSupportState.supported) {
-                      await appState.authenticateWithBiometrics();
-                    }
+              leading: isLoggedIn
+                  ? Builder(
+                      builder: (context) {
+                        return IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                        );
+                      },
+                    )
+                  : null,
+              actions: isLoggedIn
+                  ? [
+                      IconButton(
+                        icon: const Icon(Icons.person),
+                        onPressed: () async {
+                          if (appState.supportState ==
+                              LocalAuthSupportState.supported) {
+                            await appState.authenticateWithBiometrics();
+                          }
 
-                    if (!context.mounted) return;
+                          if (!context.mounted) return;
 
-                    // Since we're not handling sensitive data, we just navigate to
-                    // the profile screen if the device does not support biometric
-                    // authentication.
-                    if (appState.authorized == LocalAuthStateValue.authorized ||
-                        appState.supportState ==
-                            LocalAuthSupportState.unsupported) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<ProfileScreen>(
-                          builder: (context) => ProfileScreen(
-                            appBar: AppBar(title: const Text('User Profile')),
-                            actions: [
-                              SignedOutAction((context) {
-                                Navigator.of(context).pop();
-                              }),
-                            ],
-                            children: const [Divider()],
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ],
+                          // Since we're not handling sensitive data, we just navigate to
+                          // the profile screen if the device does not support biometric
+                          // authentication.
+                          if (appState.authorized ==
+                                  LocalAuthStateValue.authorized ||
+                              appState.supportState ==
+                                  LocalAuthSupportState.unsupported) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<ProfileScreen>(
+                                builder: (context) => ProfileScreen(
+                                  appBar: AppBar(
+                                    title: const Text('User Profile'),
+                                  ),
+                                  actions: [
+                                    SignedOutAction((context) {
+                                      Navigator.of(context).pop();
+                                    }),
+                                  ],
+                                  children: const [Divider()],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ]
+                  : null,
               automaticallyImplyLeading: false,
             );
           },
