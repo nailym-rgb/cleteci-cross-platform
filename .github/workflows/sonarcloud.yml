@@ -1,0 +1,62 @@
+name: SonarCloud Scan
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - 'feature/*'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+      - develop
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Run Tests and Generate LCOV Report
+        run: flutter test --coverage
+
+      - name: Execute SonarCloud Scan (Manual CLI)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://sonarcloud.io"
+          SONAR_PROJECT_KEY: cleteci_cross-platform
+          SONAR_ORG_KEY: cleteci
+          SONAR_SCANNER_VERSION: 7.2.0.5079 
+        run: |
+          # Variables de configuración
+          export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux-x64
+          
+          # Descarga y Descomprime el SonarScanner
+          echo "Descargando SonarScanner CLI..."
+          curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux-x64.zip
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          
+          # Agrega el SonarScanner al PATH
+          export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+          
+          # Ejecuta el Análisis, pasando las propiedades obligatorias directamente.
+          # Las demás propiedades (LCOV, sources, exclusions) se leen de sonar-project.properties.
+          sonar-scanner \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+            -Dsonar.organization=$SONAR_ORG_KEY \
+            -Dsonar.c.file.suffixes=- \
+            -Dsonar.cpp.file.suffixes=- \
+            -Dsonar.objc.file.suffixes=-

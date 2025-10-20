@@ -28,7 +28,7 @@ void main() {
     expect(localAuthState.supportState, LocalAuthSupportState.supported);
     expect(localAuthState.canCheckBiometrics, false);
     expect(localAuthState.availableBiometrics, <BiometricType>[]);
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.unauthorized));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -63,7 +63,7 @@ void main() {
       options: anyNamed('options'),
     )).thenAnswer((_) async => true);
     await localAuthState.authenticate();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.authorized));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -73,7 +73,7 @@ void main() {
       options: anyNamed('options'),
     )).thenAnswer((_) async => false);
     await localAuthState.authenticate();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.unauthorized));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -83,7 +83,7 @@ void main() {
       options: anyNamed('options'),
     )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
     await localAuthState.authenticate();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.error));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -93,7 +93,7 @@ void main() {
       options: anyNamed('options'),
     )).thenAnswer((_) async => true);
     await localAuthState.authenticateWithBiometrics();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.authorized));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -103,7 +103,7 @@ void main() {
       options: anyNamed('options'),
     )).thenAnswer((_) async => false);
     await localAuthState.authenticateWithBiometrics();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.unauthorized));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
@@ -113,7 +113,7 @@ void main() {
       options: anyNamed('options'),
     )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
     await localAuthState.authenticateWithBiometrics();
-    expect(localAuthState.authorized, equals(LocalAuthStateValues.error));
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
     expect(localAuthState.isAuthenticating, false);
   });
 

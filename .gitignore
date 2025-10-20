@@ -121,3 +121,7 @@ app.*.symbols
 assets/env.*
 .env
 .env.local.*
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
