@@ -45,7 +45,7 @@ jobs:
   e2e-test:
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/features'
     steps:
     - uses: actions/checkout@v4
     - uses: subosito/flutter-action@v2
