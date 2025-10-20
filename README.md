@@ -45,7 +45,7 @@ Este proyecto utiliza GitHub Actions para la integración y el despliegue contin
 
 ### Pipeline principal
 - Ejecuta pruebas y compila la aplicación en cada push o pull request a ramas principales (`master`, `develop`, `feature/*`).
-- Compila la imagen de Docker en ramas de desarrollo y producción.
+- Compla la imagen de Docker en ramas de desarrollo y producción.
 
 ### Integración con Docker Hub
 1. Crea una cuenta en [Docker Hub](https://hub.docker.com/).

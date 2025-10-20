@@ -10,6 +10,7 @@ Este documento explica cómo configurar y ejecutar pruebas End-to-End (E2E) para
 
 ### Instalando Node.js (si no está instalado)
 
+#### Linux (Ubuntu/Debian)
 ```bash
 # Usando el script agregado al pubspec.yaml
 flutter pub run pubspec install:node
@@ -21,6 +22,69 @@ sudo apt-get install -y nodejs
 # Verificar instalación
 node --version
 npm --version
+```
+
+#### macOS
+```bash
+# Usando Homebrew (recomendado)
+brew install node
+
+# O descargar el instalador desde https://nodejs.org/
+
+# Verificar instalación
+node --version
+npm --version
+```
+
+#### Windows
+```powershell
+# Usando Chocolatey (recomendado)
+choco install nodejs
+
+# O descargar el instalador MSI desde https://nodejs.org/
+
+# Verificar instalación
+node --version
+npm --version
+```
+
+### Instalando Flutter SDK
+
+#### Linux
+```bash
+# Descargar Flutter SDK
+wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.0-stable.tar.xz
+tar xf flutter_linux_3.24.0-stable.tar.xz
+
+# Agregar Flutter al PATH (agregar a ~/.bashrc o ~/.zshrc)
+export PATH="$PATH:`pwd`/flutter/bin"
+
+# Verificar instalación
+flutter --version
+flutter doctor
+```
+
+#### macOS
+```bash
+# Usando Homebrew
+brew install --cask flutter
+
+# O descargar desde https://flutter.dev/docs/get-started/install/macos
+
+# Verificar instalación
+flutter --version
+flutter doctor
+```
+
+#### Windows
+```powershell
+# Descargar Flutter SDK desde https://flutter.dev/docs/get-started/install/windows
+# Extraer en C:\flutter
+
+# Agregar Flutter al PATH del sistema
+# Verificar instalación
+flutter --version
+flutter doctor
 ```
 
 ## Despliegue en Amplify
@@ -42,6 +106,7 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
 
 ## Instalación
 
+### Linux/macOS
 1. Instalar dependencias de Node.js:
    ```bash
    npm install
@@ -53,10 +118,23 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
    flutter build web --release --pwa-strategy none
    ```
 
+### Windows
+1. Instalar dependencias de Node.js:
+   ```powershell
+   npm install
+   ```
+
+2. Construir la aplicación Flutter web:
+   ```powershell
+   flutter pub get
+   flutter build web --release --pwa-strategy none
+   ```
+
 ## Ejecutando Pruebas
 
 ### Desarrollo Local
 
+#### Linux/macOS
 1. Iniciar el servidor web Flutter:
    ```bash
    flutter pub global activate dhttpd
@@ -70,11 +148,35 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
    npm run cy:run   # Ejecuta pruebas sin interfaz
    ```
 
+#### Windows
+1. Iniciar el servidor web Flutter:
+   ```powershell
+   flutter pub global activate dhttpd
+   flutter pub global run dhttpd --path build/web --port 8080
+   ```
+
+2. En otra terminal, ejecutar pruebas Cypress:
+   ```powershell
+   npm run cy:open  # Abre Cypress Test Runner (interactivo)
+   # o
+   npm run cy:run   # Ejecuta pruebas sin interfaz
+   ```
+
 ### Usando Scripts
 
 El proyecto incluye scripts convenientes en `pubspec.yaml`:
 
+#### Linux/macOS
 ```bash
+# Configurar todo para pruebas E2E
+flutter pub run pubspec test:e2e:setup
+
+# Ejecutar pruebas E2E (asume que el servidor está corriendo)
+flutter pub run pubspec test:e2e
+```
+
+#### Windows
+```powershell
 # Configurar todo para pruebas E2E
 flutter pub run pubspec test:e2e:setup
 
