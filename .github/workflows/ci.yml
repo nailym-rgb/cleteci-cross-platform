@@ -60,3 +60,45 @@ jobs:
       run: |
         docker tag cleteci-cross-platform ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
+  smoke_test:
+    name: Ejecutar Smoke Test en URL Pública
+    runs-on: ubuntu-latest
+    
+    needs: [build-docker] 
+    
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Configurar URL de Despliegue
+        run: |
+          if [ "${{ github.ref_name }}" == "develop" ]; then
+            echo "WEB_APP_URL=https://poc-staging.cleteci.com/" >> $GITHUB_ENV
+          else
+            echo "WEB_APP_URL=https://poc-staging.cleteci.com/" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Esperar Propagación y Verificar 200 OK
+        run: |
+          DEPLOY_URL="${{ env.WEB_APP_URL }}"
+          echo "Iniciando Smoke Test en: $DEPLOY_URL"
+
+          sleep 45s
+
+          MAX_RETRIES=5
+          SLEEP_TIME=10
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L $DEPLOY_URL)
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ Smoke Test APROBADO (Intento $i): La aplicación está en línea (200 OK)."
+              exit 0
+            fi
+
+            echo "⏳ Intento $i fallido (Código: $HTTP_CODE). Esperando $SLEEP_TIME segundos..."
+            sleep $SLEEP_TIME
+          done
+
+          echo "❌ Smoke Test FALLIDO: No se recibió código 200 después de $MAX_RETRIES intentos."
+          exit 1
