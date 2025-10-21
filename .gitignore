@@ -121,3 +121,9 @@ app.*.symbols
 assets/env.*
 .env
 .env.local.*
+
+# librerias
+node_modules/
+
+#cypress 
+cypress/
