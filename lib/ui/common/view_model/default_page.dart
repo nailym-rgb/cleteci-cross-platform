@@ -1,9 +1,10 @@
 import 'package:cleteci_cross_platform/ui/common/widgets/page_component.dart';
+import 'package:cleteci_cross_platform/ui/ocr/widgets/ocr.dart';
 import 'package:flutter/material.dart';
 
 const List<Widget> pages = <Widget>[
   PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Colors.blue),
-  PageComponent(title: 'OCR', icon: Icons.camera_alt, color: Colors.green),
+  OCRScreen(title: 'OCR', icon: Icons.camera_alt, color: Colors.green),
   PageComponent(title: 'Speech To Text', icon: Icons.mic, color: Colors.orange),
   PageComponent(title: 'Settings', icon: Icons.settings, color: Colors.grey),
 ];
