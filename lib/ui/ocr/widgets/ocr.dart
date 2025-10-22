@@ -1,6 +1,8 @@
+import 'package:aws_textract_api/textract-2018-06-27.dart';
 import 'package:cleteci_cross_platform/ui/ocr/view_model/ocr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OCRScreen extends StatefulWidget {
@@ -17,7 +19,17 @@ class OCRScreen extends StatefulWidget {
 
 class OCRScreenState extends State<OCRScreen> {
   final ImagePicker _picker = ImagePicker();
-  final TextractService _textractService = TextractService();
+
+  // Textract Service Initialization
+  final String accessKey = dotenv.get('AWS_ACCESS_KEY');
+  final String secretKey = dotenv.get('AWS_SECRET_KEY');
+  final String awsRegion = dotenv.get('AWS_REGION');
+
+  AwsClientCredentials get credentials =>
+      AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
+  Textract get service => Textract(region: awsRegion, credentials: credentials);
+
+  TextractService get _textractService => TextractService(service);
 
   XFile? _pickedImage;
   String _extractedText = '';
