@@ -97,6 +97,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to Authorized on success', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenAnswer((_) async => true);
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
@@ -106,6 +107,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to Not Authorized on failure', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenAnswer((_) async => false);
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
@@ -115,6 +117,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to error message on exception', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
