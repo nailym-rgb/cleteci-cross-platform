@@ -37,7 +37,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
             if (!snapshot.hasData) {
               return AppBar(
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
+                title: Text(widget.title, key: Key('app-bar-title')),
               );
             }
 

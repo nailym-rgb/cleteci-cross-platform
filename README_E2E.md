@@ -112,7 +112,13 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
    npm install
    ```
 
-2. Construir la aplicación Flutter web:
+2. Configurar variables de entorno para pruebas (opcional):
+   ```bash
+   cp cypress.env.example cypress.env.json
+   # Editar cypress.env.json con tus credenciales de prueba
+   ```
+
+3. Construir la aplicación Flutter web:
    ```bash
    flutter pub get
    flutter build web --release --pwa-strategy none
@@ -124,7 +130,13 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
    npm install
    ```
 
-2. Construir la aplicación Flutter web:
+2. Configurar variables de entorno para pruebas (opcional):
+   ```powershell
+   copy cypress.env.example cypress.env.json
+   # Editar cypress.env.json con tus credenciales de prueba
+   ```
+
+3. Construir la aplicación Flutter web:
    ```powershell
    flutter pub get
    flutter build web --release --pwa-strategy none
@@ -164,9 +176,30 @@ Las pruebas E2E están integradas automáticamente en el pipeline de despliegue 
 
 ### Usando Scripts
 
-El proyecto incluye scripts convenientes en `pubspec.yaml`:
+El proyecto incluye scripts convenientes en `package.json` y `pubspec.yaml`:
 
-#### Linux/macOS
+#### Scripts de package.json (recomendados - verifican servidor automáticamente)
+
+```bash
+# Construir la aplicación web
+npm run build-web
+
+# Verificar/iniciar servidor y ejecutar pruebas específicas
+npm run test:e2e:auth        # Pruebas de autenticación (headless)
+npm run test:e2e:auth:headed # Pruebas de autenticación (con navegador)
+npm run test:e2e:app         # Pruebas de carga de app (headless)
+npm run test:e2e:app:headed  # Pruebas de carga de app (con navegador)
+npm run test:e2e:nav         # Pruebas de navegación (headless)
+npm run test:e2e:nav:headed  # Pruebas de navegación (con navegador)
+
+# Ejecutar todas las pruebas
+npm run test:e2e             # Todas las pruebas (headless)
+npm run test:e2e:headed      # Todas las pruebas (con navegador)
+```
+
+#### Scripts de pubspec.yaml (alternativos)
+
+##### Linux/macOS
 ```bash
 # Configurar todo para pruebas E2E
 flutter pub run pubspec test:e2e:setup
@@ -175,7 +208,7 @@ flutter pub run pubspec test:e2e:setup
 flutter pub run pubspec test:e2e
 ```
 
-#### Windows
+##### Windows
 ```powershell
 # Configurar todo para pruebas E2E
 flutter pub run pubspec test:e2e:setup
@@ -183,6 +216,77 @@ flutter pub run pubspec test:e2e:setup
 # Ejecutar pruebas E2E (asume que el servidor está corriendo)
 flutter pub run pubspec test:e2e
 ```
+
+### Configuración de Autenticación con Firebase
+
+Para probar el sign in con credenciales reales o emulador:
+
+#### Opción 1: Firebase Auth Emulator (Recomendado para desarrollo)
+
+1. **Instalar Firebase CLI**:
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   ```
+
+2. **Configurar proyecto Firebase** (si no tienes uno):
+   ```bash
+   firebase init
+   # Seleccionar "Authentication" y configurar proyecto
+   ```
+
+3. **Iniciar Auth Emulator**:
+   ```bash
+   firebase emulators:start --only auth
+   ```
+
+4. **Crear usuario de prueba**:
+   ```bash
+   curl -X POST http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=any-key \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com","password":"testpassword123"}'
+   ```
+
+5. **Configurar Cypress**:
+   - Asegúrate de que `FIREBASE_AUTH_EMULATOR_URL` esté configurado en `cypress.config.js`
+   - Las credenciales de prueba ya están configuradas
+
+#### Opción 2: Usuario Real en Firebase
+
+1. **Crear usuario en Firebase Console**:
+   - Ve a Firebase Console → Authentication → Users
+   - Click "Add user"
+   - Email: `test@example.com`
+   - Password: `testpassword123`
+
+2. **Configurar Cypress**:
+   - Comenta la línea `FIREBASE_AUTH_EMULATOR_URL` en `cypress.config.js`
+   - Asegúrate de que las credenciales en `cypress.env.json` sean correctas
+
+#### Opción 3: Autenticación Mockeada (Avanzado)
+
+Para testing avanzado, puedes crear un sistema de mocking:
+
+1. **Crear endpoint de mock** en tu aplicación Flutter
+2. **Configurar Cypress** para interceptar llamadas de autenticación
+3. **Simular respuestas** de Firebase Auth
+
+#### Ejecutar Pruebas de Autenticación
+
+```bash
+# Con Firebase Emulator
+firebase emulators:start --only auth &
+npm run test:e2e:auth:headed
+
+# Con usuario real
+npm run test:e2e:auth:headed
+```
+
+#### Notas Importantes
+
+- **Firebase UI en Flutter Canvas**: Los elementos de Firebase UI se renderizan dentro del canvas de Flutter, lo que hace imposible la interacción directa con Cypress
+- **Testing de Autenticación**: Requiere configuración adicional (emulador o mocking)
+- **Alternativas**: Considera usar Flutter Integration Tests para testing de autenticación completo
 
 ## Estructura de Pruebas
 
@@ -202,10 +306,10 @@ cypress/
 
 Los siguientes comandos personalizados están disponibles en `cypress/support/commands.js`:
 
-- `cy.login(email, password)` - Iniciar sesión con credenciales
+- `cy.login(email, password)` - Iniciar sesión con credenciales de email/contraseña
 - `cy.logout()` - Cerrar sesión del usuario
-- `cy.waitForFlutter()` - Esperar a que la app Flutter cargue
-- `cy.loginWithGoogle()` - Manejar login OAuth de Google
+- `cy.waitForFlutter()` - Esperar a que la app Flutter cargue completamente
+- `cy.loginWithGoogle()` - Manejar login OAuth de Google (requiere configuración adicional)
 
 ## Configuración
 
@@ -251,6 +355,8 @@ describe('Nombre de Característica', () => {
 - **Pruebas con timeout**: Aumentar timeouts en `cypress.config.js`
 - **Elementos no encontrados**: Agregar atributos `data-cy` a widgets Flutter
 - **Problemas de CORS**: Configurar headers apropiados en el servidor web
+- **Errores de autenticación**: Las pruebas de login requieren configuración de Firebase (emulador o credenciales de prueba)
+- **Flutter no carga**: Verificar que `flutter build web` se ejecutó correctamente y que el servidor está sirviendo los archivos
 
 ## Mejores Prácticas
 

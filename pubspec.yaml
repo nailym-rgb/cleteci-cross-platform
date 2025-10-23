@@ -40,9 +40,10 @@ dependencies:
   google_sign_in: ^6.3.0
   firebase_ui_oauth_google: ^2.0.0
   flutter_dotenv: ^6.0.0
-  local_auth: ^2.3.0
+  local_auth: ^3.0.0
   provider: ^6.1.5+1
   flutter_svg: ^2.2.1
+  firebase_auth_mocks: ^0.15.1
 
 dev_dependencies:
   flutter_test:
@@ -53,9 +54,13 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   mockito: ^5.5.1
   build_runner: ^2.9.0
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
 
 scripts:
   test: flutter test
@@ -64,7 +69,8 @@ scripts:
   build:web: flutter build web --release --pwa-strategy none
   serve:web: flutter pub global activate dhttpd && flutter pub global run dhttpd --path build/web --port 8080
   test:e2e: npm run test:e2e
-  test:e2e:setup: flutter pub get && npm install && flutter build web --release --pwa-strategy none
+  test:e2e:setup: flutter pub get && npm install && flutter build web --release --pwa-strategy none --target lib/main_test.dart
+  test:integration:android: flutter drive --driver=test_driver/main_test.dart --target=integration_test/auth_flow_test.dart -d android
   install:node: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs
 
 # For information on the generic Dart part of this file, see the

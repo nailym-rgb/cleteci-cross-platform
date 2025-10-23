@@ -1,6 +1,7 @@
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'config/firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -23,7 +24,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => LocalAuthState()),
       ],
-      child: const MyApp(),
+      child: MyApp(auth: FirebaseAuth.instance),
     ),
   );
 }
