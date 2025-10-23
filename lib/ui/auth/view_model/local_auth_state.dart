@@ -61,7 +61,6 @@ class LocalAuthState extends ChangeNotifier {
 
       final authenticated = await auth.authenticate(
         localizedReason: 'Let OS determine authentication method',
-        options: const AuthenticationOptions(stickyAuth: true),
       );
       isAuthenticating = false;
       _authorized = authenticated ? LocalAuthStateValue.authorized : LocalAuthStateValue.unauthorized;
@@ -82,10 +81,6 @@ class LocalAuthState extends ChangeNotifier {
       final authenticated = await auth.authenticate(
         localizedReason:
             'Scan your fingerprint or face to authenticate',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
       );
       isAuthenticating = false;
       _authorized = authenticated ? LocalAuthStateValue.authorized : LocalAuthStateValue.unauthorized;
