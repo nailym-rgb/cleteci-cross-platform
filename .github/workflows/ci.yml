@@ -102,3 +102,18 @@ jobs:
 
           echo "❌ Smoke Test FALLIDO: No se recibió código 200 después de $MAX_RETRIES intentos."
           exit 1
+      # - name: Verificar Firebase Cloud Function (Backend Health)
+      #   run: |
+      #     FIREBASE_API_URL="${{ secrets.FIREBASE_HEALTH_CHECK_URL }}"
+      #     echo "Iniciando Health Check de Firebase API en: $FIREBASE_API_URL"
+
+      #     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L $FIREBASE_API_URL)
+
+      #     echo "Código HTTP recibido de Firebase: $HTTP_CODE"
+
+      #     if [ "$HTTP_CODE" -eq 200 ]; then
+      #       echo "✅ Firebase API Health Check APROBADO: La Cloud Function respondió correctamente."
+      #     else
+      #       echo "❌ Firebase API Health Check FALLIDO: Se esperaba código 200, pero se recibió $HTTP_CODE."
+      #       exit 1
+      #     fi
