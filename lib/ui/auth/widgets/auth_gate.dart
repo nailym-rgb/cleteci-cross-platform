@@ -119,7 +119,7 @@ class AuthGate extends StatelessWidget {
                                     MaterialPageRoute<RegisterScreen>(
                                       builder: (context) {
                                         return Scaffold(
-                                          appBar: DefaultAppBar(
+                                          appBar: const DefaultAppBar(
                                             title: 'Register',
                                           ),
                                           body: Center(
@@ -127,7 +127,7 @@ class AuthGate extends StatelessWidget {
                                               constraints: const BoxConstraints(
                                                 maxWidth: 500,
                                               ),
-                                              child: Register(),
+                                              child: const Register(),
                                             ),
                                           ),
                                         );

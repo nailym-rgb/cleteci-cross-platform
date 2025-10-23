@@ -122,6 +122,8 @@ assets/env.*
 .env
 .env.local.*
 
-# Cypress
-cypress/videos/
-cypress/screenshots/
+# librerias
+node_modules/
+
+#cypress 
+cypress/

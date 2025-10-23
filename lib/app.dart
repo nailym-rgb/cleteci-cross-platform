@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       title: appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          primary: Color.fromARGB(255, 96, 165, 250),
+          primary: const Color.fromARGB(255, 96, 165, 250),
           seedColor: Color(0xFF0000FF),
           secondary: Colors.white,
         ),

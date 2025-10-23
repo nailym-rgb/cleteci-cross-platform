@@ -18,7 +18,8 @@ class LocalAuthState extends ChangeNotifier {
       _availableBiometrics ?? <BiometricType>[];
   LocalAuthStateValue get authorized => _authorized;
 
-  LocalAuthState({LocalAuthentication? auth}) : auth = auth ?? LocalAuthentication() {
+  LocalAuthState({LocalAuthentication? auth})
+    : auth = auth ?? LocalAuthentication() {
     _init();
   }
 
@@ -28,7 +29,7 @@ class LocalAuthState extends ChangeNotifier {
       _supportState = isSupported
           ? LocalAuthSupportState.supported
           : LocalAuthSupportState.unsupported;
-    } on Exception catch (e) {
+    } on Exception catch (_) {
       _supportState = LocalAuthSupportState.unsupported;
     } finally {
       notifyListeners();
@@ -38,7 +39,7 @@ class LocalAuthState extends ChangeNotifier {
   Future<void> checkBiometrics() async {
     try {
       _canCheckBiometrics = await auth.canCheckBiometrics;
-    } on PlatformException catch (e) {
+    } on PlatformException catch (_) {
       _canCheckBiometrics = false;
     }
     notifyListeners();
@@ -47,7 +48,7 @@ class LocalAuthState extends ChangeNotifier {
   Future<void> getAvailableBiometrics() async {
     try {
       _availableBiometrics = await auth.getAvailableBiometrics();
-    } on PlatformException catch (e) {
+    } on PlatformException catch (_) {
       _availableBiometrics = <BiometricType>[];
     }
     notifyListeners();
@@ -63,9 +64,11 @@ class LocalAuthState extends ChangeNotifier {
         localizedReason: 'Let OS determine authentication method',
       );
       isAuthenticating = false;
-      _authorized = authenticated ? LocalAuthStateValue.authorized : LocalAuthStateValue.unauthorized;
+      _authorized = authenticated
+          ? LocalAuthStateValue.authorized
+          : LocalAuthStateValue.unauthorized;
       notifyListeners();
-    } on PlatformException catch (e) {
+    } on PlatformException catch (_) {
       isAuthenticating = false;
       _authorized = LocalAuthStateValue.error;
       notifyListeners();
@@ -79,13 +82,15 @@ class LocalAuthState extends ChangeNotifier {
       notifyListeners();
 
       final authenticated = await auth.authenticate(
-        localizedReason:
-            'Scan your fingerprint or face to authenticate',
+        localizedReason: 'Scan your fingerprint or face to authenticate',
+        biometricOnly: true,
       );
       isAuthenticating = false;
-      _authorized = authenticated ? LocalAuthStateValue.authorized : LocalAuthStateValue.unauthorized;
+      _authorized = authenticated
+          ? LocalAuthStateValue.authorized
+          : LocalAuthStateValue.unauthorized;
       notifyListeners();
-    } on PlatformException catch (e) {
+    } on PlatformException catch (_) {
       isAuthenticating = false;
       _authorized = LocalAuthStateValue.error;
       notifyListeners();
@@ -100,4 +105,5 @@ class LocalAuthState extends ChangeNotifier {
 }
 
 enum LocalAuthSupportState { unknown, supported, unsupported }
+
 enum LocalAuthStateValue { authorized, error, loading, unauthorized }

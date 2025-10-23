@@ -44,6 +44,11 @@ dependencies:
   provider: ^6.1.5+1
   flutter_svg: ^2.2.1
   firebase_auth_mocks: ^0.15.1
+  image_picker: ^1.0.7
+  aws_textract_api: ^2.0.0
+  aws_common: ^0.7.11
+  aws_signature_v4: ^0.6.9
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +66,16 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+
+dependency_overrides:
+  # The AWS packages (via shared_aws_api) require intl ^0.19.0
+  # firebase_ui_auth 2.x+ requires intl ^0.20.0
+  # This override forces the version compatible with the AWS packages.
+  intl: ^0.19.0
+
+  # build_runner requires a newer version of built_value than aws_common allows.
+  # This override forces a version compatible with build_runner.
+  built_value: ^8.10.1
 
 scripts:
   test: flutter test
