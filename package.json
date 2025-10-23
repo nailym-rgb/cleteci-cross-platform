@@ -5,13 +5,27 @@
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "serve:e2e": "flutter pub global run dhttpd --path build/web --port 8081",
     "test:e2e": "npm run cy:run",
-    "test:e2e:headed": "cypress run --headed"
+    "test:e2e:headed": "cypress run --headed",
+    "test:e2e:auth": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --spec \"cypress/e2e/auth_flow.cy.js\"'",
+    "test:e2e:auth:headed": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --headed --spec \"cypress/e2e/auth_flow.cy.js\"'",
+    "test:e2e:signin": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --spec \"cypress/e2e/auth_flow.cy.js\"'",
+    "test:e2e:signin:headed": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --headed --spec \"cypress/e2e/auth_flow.cy.js\"'",
+    "test:e2e:app": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --spec \"cypress/e2e/app_load.cy.js\"'",
+    "test:e2e:app:headed": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --headed --spec \"cypress/e2e/app_load.cy.js\"'",
+    "test:e2e:nav": "start-server-and-test serve:e2e http://localhost:8081 'cypress run --spec \"cypress/e2e/navigation.cy.js\"'",
+    "test:e2e:nav:headed": "npm run check-server && cypress run --headed --spec 'cypress/e2e/navigation.cy.js'",
+    "check-server": "node -e \"const http=require('http');const req=http.request({hostname:'localhost',port:8081,path:'/',method:'GET',timeout:5000},res=>{process.exit(0)}).on('error',()=>{console.log('Servidor no disponible. Iniciando servidor...');require('child_process').spawn('flutter',['pub','global','run','dhttpd','--path','build/web','--port','8081'],{detached:true,stdio:'ignore'});setTimeout(()=>{process.exit(0)},3000)});req.end()\"",
+    "start-server": "flutter pub global run dhttpd --path build/web --port 8081",
+    "build-web": "flutter pub get && flutter build web --release --pwa-strategy none"
   },
   "devDependencies": {
     "cypress": "^13.6.0",
     "cypress-file-upload": "^5.0.8",
-    "cypress-real-events": "^1.12.0"
+    "cypress-real-events": "^1.12.0",
+    "start-server-and-test": "^2.1.2"
   },
   "engines": {
     "node": ">=18.0.0"

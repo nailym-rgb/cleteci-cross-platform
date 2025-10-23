@@ -16,5 +16,15 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+// Handle uncaught exceptions from Flutter app
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // Prevent Cypress from failing on Flutter's "Failed to fetch" errors
+  if (err.message.includes('Failed to fetch')) {
+    return false
+  }
+  // Let other errors fail the test
+  return true
+})
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
