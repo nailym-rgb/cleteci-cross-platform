@@ -2,14 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/auth_gate.dart';
-import 'package:cleteci_cross_platform/main_test.dart' as app;
+import 'package:cleteci_cross_platform/app.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:provider/provider.dart';
+import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Authentication Flow E2E Tests - Android', () {
     testWidgets('should load authentication screen', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify the app loads
@@ -17,7 +29,16 @@ void main() {
     });
 
     testWidgets('should display sign in screen when not authenticated', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Check for auth gate widget
@@ -25,7 +46,16 @@ void main() {
     });
 
     testWidgets('should show authentication interface', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Check that we have some authentication UI
@@ -33,7 +63,16 @@ void main() {
     });
 
     testWidgets('should allow sign in with test credentials', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // With MockFirebaseAuth, we can simulate sign in
@@ -48,7 +87,16 @@ void main() {
     });
 
     testWidgets('should handle authentication state changes', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Initially should show auth screen
@@ -59,7 +107,16 @@ void main() {
     });
 
     testWidgets('should navigate to home page after authentication', (WidgetTester tester) async {
-      app.main();
+      final mockAuth = MockFirebaseAuth();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LocalAuthState()),
+          ],
+          child: MyApp(auth: mockAuth),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // This test verifies the app structure supports navigation
