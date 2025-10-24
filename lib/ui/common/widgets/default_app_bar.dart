@@ -71,13 +71,13 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
 
             if (!isLoggedIn) {
               return AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 title: Text(widget.title, key: Key('app-bar-title')),
               );
             }
 
             return AppBar(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               title: Text(widget.title),
               leading: Builder(
                 builder: (context) {
