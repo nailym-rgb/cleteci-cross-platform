@@ -37,7 +37,8 @@ Proyecto Flutter multiplataforma para Web, Android e iOS. Utiliza Firebase como 
 
 ## Documentación Detallada
 
-Consulta la guía completa de compilación y despliegue en [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md).
+- **Compilación y Despliegue**: [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md)
+- **Pruebas de Integración**: [`README_E2E.md`](README_E2E.md)
 
 ## CI/CD y Docker Hub
 

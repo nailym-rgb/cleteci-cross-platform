@@ -68,88 +68,61 @@ void main() {
   );
 
   test('authenticate sets authorized to Authorized on success', () async {
-    when(
-      mockAuth.authenticate(localizedReason: anyNamed('localizedReason')),
-    ).thenAnswer((_) async => true);
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+    )).thenAnswer((_) async => true);
     await localAuthState.authenticate();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
   test('authenticate sets authorized to Not Authorized on failure', () async {
-    when(
-      mockAuth.authenticate(localizedReason: anyNamed('localizedReason')),
-    ).thenAnswer((_) async => false);
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+    )).thenAnswer((_) async => false);
     await localAuthState.authenticate();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
     expect(localAuthState.isAuthenticating, false);
   });
 
   test('authenticate sets authorized to error message on exception', () async {
-    when(
-      mockAuth.authenticate(localizedReason: anyNamed('localizedReason')),
-    ).thenThrow(PlatformException(code: 'error', message: 'Test error'));
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+    )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
     await localAuthState.authenticate();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
     expect(localAuthState.isAuthenticating, false);
   });
 
-  test(
-    'authenticateWithBiometrics sets authorized to Authorized on success',
-    () async {
-      when(
-        mockAuth.authenticate(
-          localizedReason: anyNamed('localizedReason'),
-          authMessages: anyNamed('authMessages'),
-          biometricOnly: anyNamed('biometricOnly'),
-          sensitiveTransaction: anyNamed('sensitiveTransaction'),
-          persistAcrossBackgrounding: anyNamed('persistAcrossBackgrounding'),
-        ),
-      ).thenAnswer((_) async => true);
-      await localAuthState.authenticateWithBiometrics();
-      expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
-      expect(localAuthState.isAuthenticating, false);
-    },
-  );
+  test('authenticateWithBiometrics sets authorized to Authorized on success', () async {
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
+    )).thenAnswer((_) async => true);
+    await localAuthState.authenticateWithBiometrics();
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
+    expect(localAuthState.isAuthenticating, false);
+  });
 
-  test(
-    'authenticateWithBiometrics sets authorized to Not Authorized on failure',
-    () async {
-      when(
-        mockAuth.authenticate(
-          localizedReason: anyNamed('localizedReason'),
-          authMessages: anyNamed('authMessages'),
-          biometricOnly: anyNamed('biometricOnly'),
-          sensitiveTransaction: anyNamed('sensitiveTransaction'),
-          persistAcrossBackgrounding: anyNamed('persistAcrossBackgrounding'),
-        ),
-      ).thenAnswer((_) async => false);
-      await localAuthState.authenticateWithBiometrics();
-      expect(
-        localAuthState.authorized,
-        equals(LocalAuthStateValue.unauthorized),
-      );
-      expect(localAuthState.isAuthenticating, false);
-    },
-  );
+  test('authenticateWithBiometrics sets authorized to Not Authorized on failure', () async {
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
+    )).thenAnswer((_) async => false);
+    await localAuthState.authenticateWithBiometrics();
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
+    expect(localAuthState.isAuthenticating, false);
+  });
 
-  test(
-    'authenticateWithBiometrics sets authorized to error message on exception',
-    () async {
-      when(
-        mockAuth.authenticate(
-          localizedReason: anyNamed('localizedReason'),
-          authMessages: anyNamed('authMessages'),
-          biometricOnly: anyNamed('biometricOnly'),
-          sensitiveTransaction: anyNamed('sensitiveTransaction'),
-          persistAcrossBackgrounding: anyNamed('persistAcrossBackgrounding'),
-        ),
-      ).thenThrow(PlatformException(code: 'error', message: 'Test error'));
-      await localAuthState.authenticateWithBiometrics();
-      expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
-      expect(localAuthState.isAuthenticating, false);
-    },
-  );
+  test('authenticateWithBiometrics sets authorized to error message on exception', () async {
+    when(mockAuth.authenticate(
+      localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
+    )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
+    await localAuthState.authenticateWithBiometrics();
+    expect(localAuthState.authorized, equals(LocalAuthStateValue.error));
+    expect(localAuthState.isAuthenticating, false);
+  });
 
   test('cancelAuthentication sets isAuthenticating to false', () async {
     when(mockAuth.stopAuthentication()).thenAnswer((_) async => true);
