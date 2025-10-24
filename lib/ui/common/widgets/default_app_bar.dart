@@ -1,4 +1,5 @@
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
@@ -20,6 +21,7 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _DefaultAppBarState extends State<DefaultAppBar> {
   @override
   Widget build(BuildContext context) {
+    final ThemeData appTheme = Theme.of(context);
     final appState = Provider.of<LocalAuthState>(context);
 
     Future<dynamic> futureBuilder = Firebase.apps.isEmpty
@@ -41,15 +43,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         Navigator.push(
           context,
           MaterialPageRoute<ProfileScreen>(
-            builder: (context) => ProfileScreen(
-              appBar: AppBar(title: const Text('User Profile')),
-              actions: [
-                SignedOutAction((context) {
-                  Navigator.of(context).pop();
-                }),
-              ],
-              children: const [Divider()],
-            ),
+            builder: (context) => const CustomUserProfileScreen(),
           ),
         );
       }
@@ -71,14 +65,18 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
 
             if (!isLoggedIn) {
               return AppBar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                title: Text(widget.title, key: Key('app-bar-title')),
+                backgroundColor: appTheme.colorScheme.primary,
+                title: Text(
+                  widget.title,
+                  key: Key('app-bar-title'),
+                  textAlign: TextAlign.left,
+                ),
               );
             }
 
             return AppBar(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              title: Text(widget.title),
+              backgroundColor: appTheme.colorScheme.primary,
+              title: Text(widget.title, textAlign: TextAlign.left),
               leading: Builder(
                 builder: (context) {
                   return IconButton(
