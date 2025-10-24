@@ -21,9 +21,9 @@ class OCRScreenState extends State<OCRScreen> {
   final ImagePicker _picker = ImagePicker();
 
   // Textract Service Initialization
-  final String accessKey = dotenv.get('AWS_ACCESS_KEY');
-  final String secretKey = dotenv.get('AWS_SECRET_KEY');
-  final String awsRegion = dotenv.get('AWS_REGION');
+  final String accessKey = dotenv.get('AZ_ACCESS_KEY');
+  final String secretKey = dotenv.get('AZ_SECRET_KEY');
+  final String awsRegion = dotenv.get('AZ_REGION');
 
   AwsClientCredentials get credentials =>
       AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
