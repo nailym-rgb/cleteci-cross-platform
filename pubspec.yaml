@@ -93,6 +93,10 @@ scripts:
 
 # The following section is specific to Flutter packages.
 flutter:
+  fonts:
+    - family: SocialIcons
+      fonts:
+        - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
