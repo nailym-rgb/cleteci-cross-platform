@@ -17,9 +17,10 @@ frontend:
         - flutter doctor
         # Habilita el soporte para web
         - flutter config --enable-web
-        # Instalar Node.js para Cypress (E2E tests)
-        - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-        - apt-get install -y nodejs
+        # Instalar Chrome para pruebas de integración (requerido por Flutter)
+        - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        - echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+        - apt-get update && apt-get install -y google-chrome-stable
     # 2. Fase de Compilación: Compila el proyecto
     build:
       commands:
@@ -29,18 +30,11 @@ frontend:
         - flutter pub get
         # Compila la aplicación web para producción
         - flutter build web --release --pwa-strategy none
-    # 3. Fase de Pruebas E2E: Ejecuta pruebas antes de desplegar
+    # 3. Fase de Pruebas de Integración: Ejecuta pruebas antes de desplegar
     test:
-      commands:
-        # Instalar dependencias de Cypress
-        - npm install
-        # Activar dhttpd globalmente para servir la app
-        - flutter pub global activate dhttpd
-        # Iniciar servidor web en background
-        - nohup flutter pub global run dhttpd --path build/web --port 8080 &
-        - sleep 10  # Esperar que el servidor inicie completamente
-        # Ejecutar pruebas E2E (sin grabación para evitar timeouts)
-        - npm run cy:run -- --record false --config video=false
+       commands:
+         # Ejecutar pruebas de integración de Flutter
+         - flutter test integration_test/
   # 4. Artefactos: Indica qué archivos subir al hosting
   artifacts:
     # El directorio donde 'flutter build web' guarda el resultado
