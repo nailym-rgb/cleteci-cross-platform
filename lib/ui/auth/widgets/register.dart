@@ -14,6 +14,25 @@ class Register extends StatelessWidget {
       auth: FirebaseAuth.instance,
       providers: [EmailAuthProvider()],
       showAuthActionSwitch: false,
+      actions: [
+        AuthStateChangeAction<UserCreated>((context, state) {
+          // Mostrar mensaje de éxito inmediatamente
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Registro exitoso! Redirigiendo al login...'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Redireccionar al login después de un breve delay
+          Future.delayed(const Duration(seconds: 2), () {
+            if (context.mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          });
+        }),
+      ],
       headerBuilder: (context, constraints, shrinkOffset) {
         return Padding(
           padding: const EdgeInsets.all(20),
