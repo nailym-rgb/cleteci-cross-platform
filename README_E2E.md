@@ -126,4 +126,4 @@ La cobertura se mide automáticamente en CI/CD. Para ver reportes localmente:
 
 ```bash
 flutter test --coverage
-# Los reportes estarán en coverage/lcov.info .
+# Los reportes estarán en coverage/lcov.info.
