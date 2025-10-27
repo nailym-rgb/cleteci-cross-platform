@@ -19,7 +19,7 @@ frontend:
         - flutter config --enable-web
         # Instalar Chrome para pruebas de integración (requerido por Flutter)
         - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
-        - yum install -y ./google-chrome-stable_current_x86_64.rpm --nogpgcheck
+        - sudo yum install -y ./google-chrome-stable_current_x86_64.rpm --nogpgcheck
         - rm google-chrome-stable_current_x86_64.rpm
     # 2. Fase de Compilación: Compila el proyecto
     build:
