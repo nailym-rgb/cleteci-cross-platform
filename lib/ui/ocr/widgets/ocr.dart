@@ -21,9 +21,18 @@ class OCRScreenState extends State<OCRScreen> {
   final ImagePicker _picker = ImagePicker();
 
   // Textract Service Initialization
-  final String accessKey = dotenv.get('AZ_ACCESS_KEY');
-  final String secretKey = dotenv.get('AZ_SECRET_KEY');
-  final String awsRegion = dotenv.get('AZ_REGION');
+  late final String accessKey;
+  late final String secretKey;
+  late final String awsRegion;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize AWS credentials with fallback values
+    accessKey = dotenv.get('AZ_ACCESS_KEY', fallback: '');
+    secretKey = dotenv.get('AZ_SECRET_KEY', fallback: '');
+    awsRegion = dotenv.get('AZ_REGION', fallback: 'us-east-1');
+  }
 
   AwsClientCredentials get credentials =>
       AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
@@ -84,6 +93,55 @@ class OCRScreenState extends State<OCRScreen> {
   @override
   Widget build(BuildContext context) {
     Color primaryColor = Theme.of(context).colorScheme.primary;
+
+    // Check if AWS credentials are available
+    final hasCredentials = accessKey.isNotEmpty && secretKey.isNotEmpty && awsRegion.isNotEmpty;
+
+    if (!hasCredentials) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 64,
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Configuración de AWS incompleta',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Las credenciales de AWS Textract no están configuradas correctamente. '
+                  'Por favor contacte al administrador del sistema.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Volver'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: SingleChildScrollView(
