@@ -13,6 +13,26 @@ frontend:
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" > assets/env.vars
         - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> assets/env.vars
         - echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" >> assets/env.vars
+        - |
+          if [ -n "$AZ_ACCESS_KEY" ]; then
+            echo "AZ_ACCESS_KEY=$AZ_ACCESS_KEY" >> assets/env.vars
+          else
+            echo "AZ_ACCESS_KEY=" >> assets/env.vars
+          fi
+        - |
+          if [ -n "$AZ_SECRET_KEY" ]; then
+            echo "AZ_SECRET_KEY=$AZ_SECRET_KEY" >> assets/env.vars
+          else
+            echo "AZ_SECRET_KEY=" >> assets/env.vars
+          fi
+        - |
+          if [ -n "$AZ_REGION" ]; then
+            echo "AZ_REGION=$AZ_REGION" >> assets/env.vars
+          else
+            echo "AZ_REGION=us-east-1" >> assets/env.vars
+          fi
+        # Verificar que el archivo se creó correctamente
+        - echo "Contenido del archivo env.vars:" && cat assets/env.vars
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web

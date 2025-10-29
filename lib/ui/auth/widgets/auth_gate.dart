@@ -1,3 +1,4 @@
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/forgot_password.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/register.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
@@ -116,19 +117,7 @@ class AuthGate extends StatelessWidget {
                                     context,
                                     MaterialPageRoute<RegisterScreen>(
                                       builder: (context) {
-                                        return Scaffold(
-                                          appBar: const DefaultAppBar(
-                                            title: 'Register',
-                                          ),
-                                          body: Center(
-                                            child: ConstrainedBox(
-                                              constraints: const BoxConstraints(
-                                                maxWidth: 500,
-                                              ),
-                                              child: const Register(),
-                                            ),
-                                          ),
-                                        );
+                                        return const CustomRegisterForm();
                                       },
                                     ),
                                   );
@@ -256,19 +245,7 @@ class AuthGate extends StatelessWidget {
                                       context,
                                       MaterialPageRoute<RegisterScreen>(
                                         builder: (context) {
-                                          return Scaffold(
-                                            appBar: DefaultAppBar(
-                                              title: 'Register',
-                                            ),
-                                            body: Center(
-                                              child: ConstrainedBox(
-                                                constraints: const BoxConstraints(
-                                                  maxWidth: 500,
-                                                ),
-                                                child: Register(),
-                                              ),
-                                            ),
-                                          );
+                                          return const CustomRegisterForm();
                                         },
                                       ),
                                     );

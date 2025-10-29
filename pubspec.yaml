@@ -49,6 +49,7 @@ dependencies:
   aws_common: ^0.7.11
   aws_signature_v4: ^0.6.9
   http: ^1.2.0
+  cloud_firestore: ^6.0.3
 
 dev_dependencies:
   flutter_test:
