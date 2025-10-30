@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 const List<Widget> pages = <Widget>[
   PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Colors.blue),
-  OCRScreen(title: 'OCR', icon: Icons.camera_alt, color: Colors.green),
+  OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
   PageComponent(title: 'Speech To Text', icon: Icons.mic, color: Colors.orange),
   PageComponent(title: 'Settings', icon: Icons.settings, color: Colors.grey),
 ];
@@ -35,7 +35,7 @@ final List<DrawerEntryDestination> appDestinations = <DrawerEntryDestination>[
   ),
   const DrawerEntryDestination(
     1,
-    'OCR',
+    'Textract',
     false,
     Icon(Icons.format_paint_outlined),
     Icon(Icons.format_paint),
