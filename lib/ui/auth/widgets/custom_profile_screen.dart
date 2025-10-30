@@ -308,17 +308,6 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                             hintText: 'correo@ejemplo.com',
                             enabled: false,
                           ),
-                          _buildEditableField(
-                            icon: Icons.calendar_today,
-                            title: 'Miembro desde',
-                            controller: TextEditingController(
-                              text: _userProfile?.createdAt != null
-                                  ? '${_userProfile!.createdAt.day}/${_userProfile!.createdAt.month}/${_userProfile!.createdAt.year}'
-                                  : 'Fecha no disponible',
-                            ),
-                            hintText: 'Fecha de registro',
-                            enabled: false,
-                          ),
                         ],
                       ),
                     ),
@@ -365,22 +354,6 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-
-                              /* ElevatedButton.icon(
-                                onPressed: () {
-                                  // TODO: Implementar cambio de contraseña
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Función próximamente')),
-                                  );
-                                },
-                                icon: const Icon(Icons.lock),
-                                label: const Text('Cambiar Contraseña'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  minimumSize: Size(buttonWidth, 48),
-                                ),
-                              ), */
                               OutlinedButton.icon(
                                 onPressed: () async {
                                    // TODO: Implementar cambio de contraseña
@@ -431,41 +404,6 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                   minimumSize: Size(buttonWidth, 48),
                                 ),
                               ),
-                             /*  OutlinedButton.icon(
-                                onPressed: () async {
-                                  final shouldSignOut = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Cerrar Sesión'),
-                                      content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
-                                          child: const Text('Cancelar'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
-                                          child: const Text('Cerrar Sesión'),
-                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (shouldSignOut == true && mounted) {
-                                    await FirebaseAuth.instance.signOut();
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  }
-                                },
-                                icon: const Icon(Icons.logout),
-                                label: const Text('Cerrar Sesión'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.black,
-                                  minimumSize: Size(buttonWidth, 48),
-                                ),
-                              ), */
                             ],
                           ),
                         ),

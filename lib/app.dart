@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
     );
     final ThemeData themeData = ThemeData(
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFFFFFFFF), // Color de fondo de todas las pantallas
       appBarTheme: AppBarThemeData(
         centerTitle: false,
         foregroundColor: Colors.white,
