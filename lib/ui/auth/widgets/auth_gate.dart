@@ -1,4 +1,4 @@
-import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/forgot_password.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/register.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
@@ -9,7 +9,6 @@ import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
 
 import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 import 'package:flutter_svg/svg.dart';
@@ -118,19 +117,7 @@ class AuthGate extends StatelessWidget {
                                     context,
                                     MaterialPageRoute<RegisterScreen>(
                                       builder: (context) {
-                                        return Scaffold(
-                                          appBar: DefaultAppBar(
-                                            title: 'Register',
-                                          ),
-                                          body: Center(
-                                            child: ConstrainedBox(
-                                              constraints: const BoxConstraints(
-                                                maxWidth: 500,
-                                              ),
-                                              child: Register(),
-                                            ),
-                                          ),
-                                        );
+                                        return const CustomRegisterForm();
                                       },
                                     ),
                                   );
@@ -258,19 +245,7 @@ class AuthGate extends StatelessWidget {
                                       context,
                                       MaterialPageRoute<RegisterScreen>(
                                         builder: (context) {
-                                          return Scaffold(
-                                            appBar: DefaultAppBar(
-                                              title: 'Register',
-                                            ),
-                                            body: Center(
-                                              child: ConstrainedBox(
-                                                constraints: const BoxConstraints(
-                                                  maxWidth: 500,
-                                                ),
-                                                child: Register(),
-                                              ),
-                                            ),
-                                          );
+                                          return const CustomRegisterForm();
                                         },
                                       ),
                                     );

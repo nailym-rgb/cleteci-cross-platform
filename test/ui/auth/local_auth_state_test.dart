@@ -38,11 +38,16 @@ void main() {
     expect(localAuthState.canCheckBiometrics, true);
   });
 
-  test('checkBiometrics sets canCheckBiometrics to false on exception', () async {
-    when(mockAuth.canCheckBiometrics).thenThrow(PlatformException(code: 'error'));
-    await localAuthState.checkBiometrics();
-    expect(localAuthState.canCheckBiometrics, false);
-  });
+  test(
+    'checkBiometrics sets canCheckBiometrics to false on exception',
+    () async {
+      when(
+        mockAuth.canCheckBiometrics,
+      ).thenThrow(PlatformException(code: 'error'));
+      await localAuthState.checkBiometrics();
+      expect(localAuthState.canCheckBiometrics, false);
+    },
+  );
 
   test('getAvailableBiometrics sets availableBiometrics', () async {
     final biometrics = [BiometricType.fingerprint, BiometricType.face];
@@ -51,11 +56,16 @@ void main() {
     expect(localAuthState.availableBiometrics, biometrics);
   });
 
-  test('getAvailableBiometrics sets availableBiometrics to empty on exception', () async {
-    when(mockAuth.getAvailableBiometrics()).thenThrow(PlatformException(code: 'error'));
-    await localAuthState.getAvailableBiometrics();
-    expect(localAuthState.availableBiometrics, <BiometricType>[]);
-  });
+  test(
+    'getAvailableBiometrics sets availableBiometrics to empty on exception',
+    () async {
+      when(
+        mockAuth.getAvailableBiometrics(),
+      ).thenThrow(PlatformException(code: 'error'));
+      await localAuthState.getAvailableBiometrics();
+      expect(localAuthState.availableBiometrics, <BiometricType>[]);
+    },
+  );
 
   test('authenticate sets authorized to Authorized on success', () async {
     when(mockAuth.authenticate(
@@ -87,6 +97,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to Authorized on success', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenAnswer((_) async => true);
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.authorized));
@@ -96,6 +107,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to Not Authorized on failure', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenAnswer((_) async => false);
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.unauthorized));
@@ -105,6 +117,7 @@ void main() {
   test('authenticateWithBiometrics sets authorized to error message on exception', () async {
     when(mockAuth.authenticate(
       localizedReason: anyNamed('localizedReason'),
+      biometricOnly: anyNamed('biometricOnly'),
     )).thenThrow(PlatformException(code: 'error', message: 'Test error'));
     await localAuthState.authenticateWithBiometrics();
     expect(localAuthState.authorized, equals(LocalAuthStateValue.error));

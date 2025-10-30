@@ -37,7 +37,8 @@ Proyecto Flutter multiplataforma para Web, Android e iOS. Utiliza Firebase como 
 
 ## Documentación Detallada
 
-Consulta la guía completa de compilación y despliegue en [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md).
+- **Compilación y Despliegue**: [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md)
+- **Pruebas de Integración**: [`README_E2E.md`](README_E2E.md)
 
 ## CI/CD y Docker Hub
 
@@ -45,7 +46,7 @@ Este proyecto utiliza GitHub Actions para la integración y el despliegue contin
 
 ### Pipeline principal
 - Ejecuta pruebas y compila la aplicación en cada push o pull request a ramas principales (`master`, `develop`, `feature/*`).
-- Compla la imagen de Docker en ramas de desarrollo y producción.
+- Compila la imagen de Docker en ramas de desarrollo y producción.
 
 ### Integración con Docker Hub
 1. Crea una cuenta en [Docker Hub](https://hub.docker.com/).

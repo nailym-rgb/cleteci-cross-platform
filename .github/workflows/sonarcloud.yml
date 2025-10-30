@@ -57,6 +57,9 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             -Dsonar.organization=$SONAR_ORG_KEY \
+            -Dsonar.sources=lib \
+            -Dsonar.tests=test \
+            -Dsonar.dart.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.c.file.suffixes=- \
             -Dsonar.cpp.file.suffixes=- \
             -Dsonar.objc.file.suffixes=-

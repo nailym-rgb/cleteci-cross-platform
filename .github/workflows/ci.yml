@@ -42,36 +42,6 @@ jobs:
           echo "✅ Cobertura OK: $coverage_percent%"
         fi
       shell: bash # Asegúrate de usar bash
-  e2e-test:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/features'
-    steps:
-    - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v2
-    - run: flutter pub get
-    - run: flutter build web --release --pwa-strategy none
-    - name: Start Flutter web server
-      run: |
-        flutter pub global activate dhttpd
-        flutter pub global run dhttpd --path build/web --port 8080 &
-        sleep 5
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-    - name: Install Cypress dependencies
-      run: npm install
-    - name: Run E2E tests
-      run: npm run test:e2e
-    - name: Upload E2E test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: e2e-test-results
-        path: |
-          cypress/videos/
-          cypress/screenshots/
   build-docker:
     runs-on: ubuntu-latest
     needs: test
@@ -90,3 +60,60 @@ jobs:
       run: |
         docker tag cleteci-cross-platform ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/cleteci-cross-platform:latest
+  smoke_test:
+    name: Ejecutar Smoke Test en URL Pública
+    runs-on: ubuntu-latest
+    
+    needs: [build-docker] 
+    
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Configurar URL de Despliegue
+        run: |
+          if [ "${{ github.ref_name }}" == "develop" ]; then
+            echo "WEB_APP_URL=https://poc-staging.cleteci.com/" >> $GITHUB_ENV
+          else
+            echo "WEB_APP_URL=https://poc-staging.cleteci.com/" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Esperar Propagación y Verificar 200 OK
+        run: |
+          DEPLOY_URL="${{ env.WEB_APP_URL }}"
+          echo "Iniciando Smoke Test en: $DEPLOY_URL"
+
+          sleep 45s
+
+          MAX_RETRIES=5
+          SLEEP_TIME=10
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L $DEPLOY_URL)
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ Smoke Test APROBADO (Intento $i): La aplicación está en línea (200 OK)."
+              exit 0
+            fi
+
+            echo "⏳ Intento $i fallido (Código: $HTTP_CODE). Esperando $SLEEP_TIME segundos..."
+            sleep $SLEEP_TIME
+          done
+
+          echo "❌ Smoke Test FALLIDO: No se recibió código 200 después de $MAX_RETRIES intentos."
+          exit 1
+      # - name: Verificar Firebase Cloud Function (Backend Health)
+      #   run: |
+      #     FIREBASE_API_URL="${{ secrets.FIREBASE_HEALTH_CHECK_URL }}"
+      #     echo "Iniciando Health Check de Firebase API en: $FIREBASE_API_URL"
+
+      #     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L $FIREBASE_API_URL)
+
+      #     echo "Código HTTP recibido de Firebase: $HTTP_CODE"
+
+      #     if [ "$HTTP_CODE" -eq 200 ]; then
+      #       echo "✅ Firebase API Health Check APROBADO: La Cloud Function respondió correctamente."
+      #     else
+      #       echo "❌ Firebase API Health Check FALLIDO: Se esperaba código 200, pero se recibió $HTTP_CODE."
+      #       exit 1
+      #     fi

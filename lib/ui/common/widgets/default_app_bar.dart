@@ -1,4 +1,5 @@
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
@@ -20,10 +21,36 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _DefaultAppBarState extends State<DefaultAppBar> {
   @override
   Widget build(BuildContext context) {
+    final ThemeData appTheme = Theme.of(context);
     final appState = Provider.of<LocalAuthState>(context);
 
+    Future<dynamic> futureBuilder = Firebase.apps.isEmpty
+        ? Firebase.initializeApp()
+        : Future.value();
+
+    void handleOnPressedProfile() async {
+      if (appState.supportState == LocalAuthSupportState.supported) {
+        await appState.authenticateWithBiometrics();
+      }
+
+      if (!context.mounted) return;
+
+      // Since we're not handling sensitive data, we just navigate to
+      // the profile screen if the device does not support biometric
+      // authentication.
+      if (appState.authorized == LocalAuthStateValue.authorized ||
+          appState.supportState == LocalAuthSupportState.unsupported) {
+        Navigator.push(
+          context,
+          MaterialPageRoute<ProfileScreen>(
+            builder: (context) => const CustomUserProfileScreen(),
+          ),
+        );
+      }
+    }
+
     return FutureBuilder(
-      future: Firebase.apps.isEmpty ? Firebase.initializeApp() : Future.value(),
+      future: futureBuilder,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           // Show a loading indicator while Firebase initializes
@@ -34,16 +61,22 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         return StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+            bool isLoggedIn = snapshot.hasData;
+
+            if (!isLoggedIn) {
               return AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title, key: Key('app-bar-title')),
+                backgroundColor: appTheme.colorScheme.primary,
+                title: Text(
+                  widget.title,
+                  key: Key('app-bar-title'),
+                  textAlign: TextAlign.left,
+                ),
               );
             }
 
             return AppBar(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: Text(widget.title),
+              backgroundColor: appTheme.colorScheme.primary,
+              title: Text(widget.title, textAlign: TextAlign.left),
               leading: Builder(
                 builder: (context) {
                   return IconButton(
@@ -57,36 +90,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.person),
-                  onPressed: () async {
-                    if (appState.supportState ==
-                        LocalAuthSupportState.supported) {
-                      await appState.authenticateWithBiometrics();
-                    }
-
-                    if (!context.mounted) return;
-
-                    // Since we're not handling sensitive data, we just navigate to
-                    // the profile screen if the device does not support biometric
-                    // authentication.
-                    if (appState.authorized == LocalAuthStateValue.authorized ||
-                        appState.supportState ==
-                            LocalAuthSupportState.unsupported) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<ProfileScreen>(
-                          builder: (context) => ProfileScreen(
-                            appBar: AppBar(title: const Text('User Profile')),
-                            actions: [
-                              SignedOutAction((context) {
-                                Navigator.of(context).pop();
-                              }),
-                            ],
-                            children: const [Divider()],
-                          ),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: handleOnPressedProfile,
                 ),
               ],
               automaticallyImplyLeading: false,
