@@ -72,8 +72,8 @@ jobs:
             -Dsonar.sources=lib \
             -Dsonar.tests=test \
             -Dsonar.test.inclusions=**/*test*.dart \
-            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info \
             -Dsonar.coverage.exclusions=**/*.g.dart,**/android/**,**/ios/**,**/web/**,**/windows/**,**/linux/**,**/macos/**,**/main*.dart,**/firebase_options.dart \
+            -Dsonar.coverageReportPaths=coverage/lcov.info \
             -Dsonar.c.file.suffixes=- \
             -Dsonar.cpp.file.suffixes=- \
             -Dsonar.objc.file.suffixes=-
