@@ -32,12 +32,19 @@ jobs:
         run: |
           flutter test --coverage --coverage-path=coverage/lcov.info
           ls -la coverage/
+          echo "=== LCOV FILE SIZE ==="
+          wc -l coverage/lcov.info
+          echo "=== FIRST 10 LINES ==="
+          head -10 coverage/lcov.info
 
       - name: Verify Coverage File
         run: |
           if [ -f coverage/lcov.info ]; then
             echo "Coverage file exists"
-            head -10 coverage/lcov.info
+            echo "=== COVERAGE SUMMARY ==="
+            awk '/^SF:/ {file=$2} /^LF:/ {lines=$2} /^LH:/ {hits=$2; if(lines > 0) {percentage = (hits * 100) / lines; printf "%.1f%% %s\n", percentage, file}}' coverage/lcov.info | grep -E "(lib/|models/|services/)" | sort -nr | head -5
+            echo "=== TOTAL AVERAGE ==="
+            awk '/^SF:/ {file=$2} /^LF:/ {lines=$2} /^LH:/ {hits=$2; if(lines > 0) {percentage = (hits * 100) / lines; printf "%.1f%% %s\n", percentage, file}}' coverage/lcov.info | awk '{sum += $1; count++} END {if(count > 0) print "Average coverage:", sum/count "%"}'
           else
             echo "Coverage file not found!"
             exit 1
@@ -74,6 +81,7 @@ jobs:
             -Dsonar.test.inclusions=**/*test*.dart \
             -Dsonar.coverage.exclusions=**/*.g.dart,**/android/**,**/ios/**,**/web/**,**/windows/**,**/linux/**,**/macos/**,**/main*.dart,**/firebase_options.dart \
             -Dsonar.dart.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.language=dart \
             -Dsonar.c.file.suffixes=- \
             -Dsonar.cpp.file.suffixes=- \
             -Dsonar.objc.file.suffixes=-
