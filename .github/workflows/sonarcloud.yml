@@ -29,7 +29,19 @@ jobs:
         run: flutter pub get
 
       - name: Run Tests and Generate LCOV Report
-        run: flutter test --coverage
+        run: |
+          flutter test --coverage --coverage-path=coverage/lcov.info
+          ls -la coverage/
+
+      - name: Verify Coverage File
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo "Coverage file exists"
+            head -10 coverage/lcov.info
+          else
+            echo "Coverage file not found!"
+            exit 1
+          fi
 
       - name: Execute SonarCloud Scan (Manual CLI)
         env:
@@ -59,7 +71,9 @@ jobs:
             -Dsonar.organization=$SONAR_ORG_KEY \
             -Dsonar.sources=lib \
             -Dsonar.tests=test \
-            -Dsonar.dart.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.test.inclusions=**/*test*.dart \
+            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info \
+            -Dsonar.coverage.exclusions=**/*.g.dart,**/android/**,**/ios/**,**/web/**,**/windows/**,**/linux/**,**/macos/**,**/main*.dart,**/firebase_options.dart \
             -Dsonar.c.file.suffixes=- \
             -Dsonar.cpp.file.suffixes=- \
             -Dsonar.objc.file.suffixes=-
