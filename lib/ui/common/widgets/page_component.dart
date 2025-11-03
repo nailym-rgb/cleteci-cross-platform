@@ -60,6 +60,10 @@ class SettingsPage extends StatelessWidget {
               },
               icon: const Icon(Icons.palette),
               label: const Text('Theme Settings'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
             ),
           ],
         ),
