@@ -121,10 +121,10 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil guardado exitosamente'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Perfil guardado exitosamente'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -146,7 +146,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
         children: [
           SizedBox(
             width: 32, // Ancho fijo para alinear iconos
-            child: Icon(icon, size: 24, color: enabled ? null : Colors.grey),
+            child: Icon(icon, size: 24, color: enabled ? null : Theme.of(context).disabledColor),
           ),
           const SizedBox(width: 12),
           SizedBox(
@@ -156,7 +156,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: enabled ? null : Colors.grey,
+                color: enabled ? null : Theme.of(context).disabledColor,
               ),
             ),
           ),
@@ -170,11 +170,11 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                 border: const OutlineInputBorder(),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 filled: !enabled,
-                fillColor: enabled ? null : Colors.grey[100],
+                fillColor: enabled ? null : Theme.of(context).disabledColor.withOpacity(0.1),
               ),
               style: TextStyle(
                 fontSize: 16,
-                color: enabled ? null : Colors.grey[600],
+                color: enabled ? null : Theme.of(context).disabledColor.withOpacity(0.6),
               ),
             ),
           ),
@@ -217,7 +217,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
             FirebaseAuth.instance.currentUser?.email ?? '',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: Theme.of(context).disabledColor.withOpacity(0.6),
             ),
           ),
         ],
@@ -256,7 +256,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
                   const SizedBox(height: 16),
                   Text('Error al cargar perfil: ${snapshot.error}'),
                   const SizedBox(height: 16),
@@ -346,8 +346,8 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                 icon: const Icon(Icons.save),
                                 label: const Text('Guardar Cambios'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                   minimumSize: Size(buttonWidth, 48),
                                 ),
                               ),
@@ -362,7 +362,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                 icon: const Icon(Icons.logout),
                                 label: const Text('Cambiar Contraseña'),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.black,
+                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
                                   minimumSize: Size(buttonWidth, 48),
                                 ),
                               ),
@@ -382,7 +382,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                         TextButton(
                                           onPressed: () => Navigator.of(context).pop(true),
                                           child: const Text('Cerrar Sesión'),
-                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                                         ),
                                       ],
                                     ),
@@ -398,7 +398,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                                 icon: const Icon(Icons.lock),
                                 label: const Text('Cerrar Sesión'),
                                 style: ElevatedButton.styleFrom(                        
-                                  foregroundColor: Colors.black,
+                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
                                   minimumSize: Size(buttonWidth, 48),
                                 ),
                               ),

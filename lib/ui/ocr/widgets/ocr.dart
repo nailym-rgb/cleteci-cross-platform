@@ -86,7 +86,7 @@ class OCRScreenState extends State<OCRScreen> {
 
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
     );
   }
 
@@ -105,10 +105,10 @@ class OCRScreenState extends State<OCRScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.warning_amber_rounded,
                   size: 64,
-                  color: Colors.orange,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -120,12 +120,12 @@ class OCRScreenState extends State<OCRScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Las credenciales de AWS Textract no están configuradas correctamente. '
                   'Por favor contacte al administrador del sistema.',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey,
+                    color: Theme.of(context).disabledColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -160,7 +160,7 @@ class OCRScreenState extends State<OCRScreen> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 backgroundColor: primaryColor,
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 textStyle: const TextStyle(fontSize: 16),
               ),
             ),
@@ -180,9 +180,9 @@ class OCRScreenState extends State<OCRScreen> {
           height: MediaQuery.of(context).size.height * 0.5,
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueGrey.shade200),
+            border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(12),
-            color: Colors.blueGrey[50],
+            color: Theme.of(context).cardColor,
           ),
           child: _pickedImage != null
               ? ClipRRect(
@@ -194,10 +194,10 @@ class OCRScreenState extends State<OCRScreen> {
                     child: Image.network(_pickedImage!.path),
                   ),
                 )
-              : const Center(
+              : Center(
                   child: Text(
                     'No image selected.',
-                    style: TextStyle(color: Colors.blueGrey),
+                    style: TextStyle(color: Theme.of(context).disabledColor),
                   ),
                 ),
         ),
@@ -264,7 +264,7 @@ class OCRScreenState extends State<OCRScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: SelectableText(

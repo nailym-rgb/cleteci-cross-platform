@@ -99,9 +99,9 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Registro exitoso! Redirigiendo al login...'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('¡Registro exitoso! Redirigiendo al login...'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
 
@@ -296,11 +296,11 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
                             onPressed: _isLoading ? null : _register,
                             icon: const Icon(Icons.person_add),
                             label: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
                                 : const Text('Registrarse'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: appTheme.colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
                               minimumSize: Size(buttonWidth, 48),
                             ),
                           ),
