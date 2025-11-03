@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cleteci_cross_platform/ui/common/view_model/default_page.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/page_component.dart';
 import 'package:cleteci_cross_platform/ui/ocr/widgets/ocr.dart';
+import 'package:cleteci_cross_platform/ui/speech_to_text/widgets/speech_to_text_screen.dart';
 import 'package:cleteci_cross_platform/ui/settings/widgets/theme_settings_screen.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
       expect(appDestinations[0].label, 'Dashboard');
       expect(appDestinations[1].label, 'Textract');
       expect(appDestinations[2].label, 'Speech to Text');
-      expect(appDestinations[3].label, 'Settings');
+      expect(appDestinations[3].label, 'Theme Settings');
     });
 
     test('appDestinations has correct indices', () {
@@ -53,35 +54,29 @@ void main() {
     test('pages contains correct widget types', () {
       expect(pages[0], isA<PageComponent>());
       expect(pages[1], isA<OCRScreen>());
-      expect(pages[2], isA<PageComponent>());
-      expect(pages[3], isA<SettingsPage>());
+      expect(pages[2], isA<SpeechToTextScreen>());
+      expect(pages[3], isA<ThemeSettingsScreen>());
     });
 
     test('pages have correct titles', () {
       final page0 = pages[0] as PageComponent;
-      final page2 = pages[2] as PageComponent;
 
       expect(page0.title, 'Dashboard');
-      expect(page2.title, 'Speech To Text');
-      // Settings page doesn't have title property like PageComponent
+      // Speech to Text and Theme Settings pages don't have title property like PageComponent
     });
 
     test('pages have correct icons', () {
       final page0 = pages[0] as PageComponent;
-      final page2 = pages[2] as PageComponent;
 
       expect(page0.icon, Icons.widgets);
-      expect(page2.icon, Icons.mic);
-      // Settings page doesn't have icon property like PageComponent
+      // Speech to Text and Theme Settings pages don't have icon property like PageComponent
     });
 
     test('pages have correct colors', () {
       final page0 = pages[0] as PageComponent;
-      final page2 = pages[2] as PageComponent;
 
       expect(page0.color, Color(0xFF2196F3)); // Blue
-      expect(page2.color, Color(0xFFFF9800)); // Orange
-      // Settings page doesn't have color property like PageComponent
+      // Speech to Text and Theme Settings pages don't have color property like PageComponent
     });
   });
 }
