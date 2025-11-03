@@ -50,6 +50,26 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
               onColorChanged: (color) => themeProvider.setSeedColor(color),
             ),
 
+            const SizedBox(height: 24),
+
+            // App Bar Text Color Section
+            _buildColorSection(
+              title: 'App Bar Text Color',
+              subtitle: 'Text color for app bars and navigation',
+              currentColor: themeProvider.appBarTextColor,
+              onColorChanged: (color) => themeProvider.setAppBarTextColor(color),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Button Text Color Section
+            _buildColorSection(
+              title: 'Button Text Color',
+              subtitle: 'Text color for buttons',
+              currentColor: themeProvider.buttonTextColor,
+              onColorChanged: (color) => themeProvider.setButtonTextColor(color),
+            ),
+
             const SizedBox(height: 32),
 
             // Reset Button
@@ -153,11 +173,11 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
                 color: themeProvider.primaryColor,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'App Bar Preview',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: themeProvider.appBarTextColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -173,6 +193,7 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: themeProvider.primaryColor,
+                      foregroundColor: themeProvider.buttonTextColor,
                     ),
                     child: const Text('Primary Button'),
                   ),
@@ -266,6 +287,111 @@ class _ColorPickerState extends State<ColorPicker> {
     _selectedColor = widget.currentColor;
   }
 
+  void _showCustomColorPicker(BuildContext context) {
+    // Simple RGB sliders for custom color selection
+    int red = _selectedColor.red;
+    int green = _selectedColor.green;
+    int blue = _selectedColor.blue;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Custom Color Picker'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Color preview
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, red, green, blue),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                    width: 2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // RGB Sliders
+              _buildColorSlider(
+                label: 'Red',
+                value: red.toDouble(),
+                onChanged: (value) {
+                  setState(() => red = value.toInt());
+                },
+              ),
+              _buildColorSlider(
+                label: 'Green',
+                value: green.toDouble(),
+                onChanged: (value) {
+                  setState(() => green = value.toInt());
+                },
+              ),
+              _buildColorSlider(
+                label: 'Blue',
+                value: blue.toDouble(),
+                onChanged: (value) {
+                  setState(() => blue = value.toInt());
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final customColor = Color.fromARGB(255, red, green, blue);
+                this.setState(() {
+                  _selectedColor = customColor;
+                });
+                widget.onColorChanged(customColor);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Select'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildColorSlider({
+    required String label,
+    required double value,
+    required Function(double) onChanged,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 50,
+          child: Text(label),
+        ),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: 0,
+            max: 255,
+            divisions: 255,
+            onChanged: onChanged,
+          ),
+        ),
+        SizedBox(
+          width: 40,
+          child: Text(
+            value.toInt().toString(),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -290,36 +416,65 @@ class _ColorPickerState extends State<ColorPicker> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: _predefinedColors.map((color) {
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedColor = color;
-                });
-                widget.onColorChanged(color);
-              },
+          children: [
+            // Custom color picker button
+            GestureDetector(
+              onTap: () => _showCustomColorPicker(context),
               child: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: color,
+                  gradient: const LinearGradient(
+                    colors: [Colors.red, Colors.yellow, Colors.blue],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: _selectedColor == color
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).dividerColor,
-                    width: _selectedColor == color ? 3 : 1,
+                    color: Theme.of(context).dividerColor,
+                    width: 1,
                   ),
                 ),
+                child: const Icon(
+                  Icons.palette,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-            );
-          }).toList(),
+            ),
+            // Predefined colors
+            ..._predefinedColors.map((color) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedColor = color;
+                  });
+                  widget.onColorChanged(color);
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _selectedColor == color
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).dividerColor,
+                      width: _selectedColor == color ? 3 : 1,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ],
     );
   }
 
   static const List<Color> _predefinedColors = [
+    // Material Design Colors
     Color(0xFF2196F3), // Blue
     Color(0xFF4CAF50), // Green
     Color(0xFFFF9800), // Orange
@@ -332,5 +487,51 @@ class _ColorPickerState extends State<ColorPicker> {
     Color(0xFF607D8B), // Blue Grey
     Color(0xFF3F51B5), // Indigo
     Color(0xFF009688), // Teal
+    Color(0xFFFFC107), // Amber
+    Color(0xFF673AB7), // Deep Purple
+    Color(0xFFCDDC39), // Lime
+    Color(0xFF00ACC1), // Cyan 700
+    Color(0xFF388E3C), // Green 700
+    Color(0xFFF57C00), // Orange 700
+    Color(0xFF7B1FA2), // Purple 700
+    Color(0xFFC2185B), // Pink 700
+    Color(0xFF1976D2), // Blue 700
+    Color(0xFF689F38), // Light Green 700
+    Color(0xFF455A64), // Blue Grey 700
+    Color(0xFF5D4037), // Brown 700
+    Color(0xFF512DA8), // Deep Purple 700
+    Color(0xFFBF360C), // Deep Orange 900
+    Color(0xFF0D47A1), // Blue 900
+    Color(0xFF1B5E20), // Green 900
+    Color(0xFFE65100), // Orange 900
+    Color(0xFF4A148C), // Purple 900
+    Color(0xFF880E4F), // Pink 900
+    // Additional vibrant colors
+    Color(0xFFFF4081), // Pink A200
+    Color(0xFF00E676), // Green A200
+    Color(0xFF18FFFF), // Cyan A200
+    Color(0xFFFF6F00), // Orange A200
+    Color(0xFFAA00FF), // Purple A200
+    Color(0xFFFF1744), // Red A200
+    Color(0xFF00E5FF), // Cyan A400
+    Color(0xFF76FF03), // Light Green A400
+    Color(0xFFFFD600), // Yellow A400
+    Color(0xFF3D5AFE), // Indigo A200
+    Color(0xFFD500F9), // Purple A400
+    Color(0xFFFF3D00), // Deep Orange A400
+    // Neutral colors
+    Color(0xFF212121), // Grey 900
+    Color(0xFF424242), // Grey 800
+    Color(0xFF616161), // Grey 700
+    Color(0xFF757575), // Grey 600
+    Color(0xFF9E9E9E), // Grey 500
+    Color(0xFFBDBDBD), // Grey 400
+    Color(0xFFE0E0E0), // Grey 300
+    Color(0xFFEEEEEE), // Grey 200
+    Color(0xFFF5F5F5), // Grey 100
+    Color(0xFFFAFAFA), // Grey 50
+    // White and Black
+    Color(0xFFFFFFFF), // White
+    Color(0xFF000000), // Black
   ];
 }
