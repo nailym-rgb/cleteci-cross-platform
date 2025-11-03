@@ -51,6 +51,8 @@ dependencies:
   http: ^1.2.0
   cloud_firestore: ^6.0.3
   shared_preferences: ^2.3.2
+  speech_to_text: ^6.6.1
+  permission_handler: ^11.3.1
   remove_from_coverage: ^2.0.0
 
 dev_dependencies:
