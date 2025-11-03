@@ -17,6 +17,8 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Theme Settings'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

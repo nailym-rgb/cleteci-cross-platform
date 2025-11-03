@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cleteci_cross_platform/ui/common/view_model/default_page.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/page_component.dart';
 import 'package:cleteci_cross_platform/ui/ocr/widgets/ocr.dart';
+import 'package:cleteci_cross_platform/ui/settings/widgets/theme_settings_screen.dart';
 
 void main() {
   group('DefaultPageViewModel', () {
@@ -53,37 +54,34 @@ void main() {
       expect(pages[0], isA<PageComponent>());
       expect(pages[1], isA<OCRScreen>());
       expect(pages[2], isA<PageComponent>());
-      expect(pages[3], isA<PageComponent>());
+      expect(pages[3], isA<SettingsPage>());
     });
 
     test('pages have correct titles', () {
       final page0 = pages[0] as PageComponent;
       final page2 = pages[2] as PageComponent;
-      final page3 = pages[3] as PageComponent;
 
       expect(page0.title, 'Dashboard');
       expect(page2.title, 'Speech To Text');
-      expect(page3.title, 'Settings');
+      // Settings page doesn't have title property like PageComponent
     });
 
     test('pages have correct icons', () {
       final page0 = pages[0] as PageComponent;
       final page2 = pages[2] as PageComponent;
-      final page3 = pages[3] as PageComponent;
 
       expect(page0.icon, Icons.widgets);
       expect(page2.icon, Icons.mic);
-      expect(page3.icon, Icons.settings);
+      // Settings page doesn't have icon property like PageComponent
     });
 
     test('pages have correct colors', () {
       final page0 = pages[0] as PageComponent;
       final page2 = pages[2] as PageComponent;
-      final page3 = pages[3] as PageComponent;
 
-      expect(page0.color, Colors.blue);
-      expect(page2.color, Colors.orange);
-      expect(page3.color, Colors.grey);
+      expect(page0.color, Color(0xFF2196F3)); // Blue
+      expect(page2.color, Color(0xFFFF9800)); // Orange
+      // Settings page doesn't have color property like PageComponent
     });
   });
 }
