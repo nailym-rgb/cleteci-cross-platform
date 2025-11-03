@@ -70,6 +70,26 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
               onColorChanged: (color) => themeProvider.setButtonTextColor(color),
             ),
 
+            const SizedBox(height: 24),
+
+            // Error Color Section
+            _buildColorSection(
+              title: 'Error Color',
+              subtitle: 'Background color for error messages',
+              currentColor: themeProvider.errorColor,
+              onColorChanged: (color) => themeProvider.setErrorColor(color),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Error Text Color Section
+            _buildColorSection(
+              title: 'Error Text Color',
+              subtitle: 'Text color for error messages',
+              currentColor: themeProvider.errorTextColor,
+              onColorChanged: (color) => themeProvider.setErrorTextColor(color),
+            ),
+
             const SizedBox(height: 32),
 
             // Reset Button
@@ -148,6 +168,10 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _showColorPicker(context, currentColor, onColorChanged),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
                     child: const Text('Choose Color'),
                   ),
                 ),
@@ -206,6 +230,35 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+
+            // Error Message Preview
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: themeProvider.errorColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: themeProvider.errorTextColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This is an error message preview',
+                      style: TextStyle(
+                        color: themeProvider.errorTextColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
