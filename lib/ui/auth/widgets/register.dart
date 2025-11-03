@@ -18,10 +18,10 @@ class Register extends StatelessWidget {
         AuthStateChangeAction<UserCreated>((context, state) {
           // Mostrar mensaje de éxito inmediatamente
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Registro exitoso! Redirigiendo al login...'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: const Text('¡Registro exitoso! Redirigiendo al login...'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 2),
             ),
           );
 
