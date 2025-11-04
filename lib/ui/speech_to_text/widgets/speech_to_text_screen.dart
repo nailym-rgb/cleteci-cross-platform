@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../services/speech_service.dart';
 
 class SpeechToTextScreen extends StatefulWidget {
@@ -157,37 +158,35 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
     });
   }
 
-  void _copyToClipboard() {
+  Future<void> _copyToClipboard() async {
     if (_textController.text.isNotEmpty) {
-      // TODO: Implement clipboard functionality
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Text copied to clipboard')),
-      );
+      try {
+        await Clipboard.setData(ClipboardData(text: _textController.text));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Text copied to clipboard'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to copy text: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Speech to Text'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        actions: [
-          if (_textController.text.isNotEmpty) ...[
-            IconButton(
-              icon: const Icon(Icons.copy),
-              onPressed: _copyToClipboard,
-              tooltip: 'Copy to clipboard',
-            ),
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: _clearText,
-              tooltip: 'Clear text',
-            ),
-          ],
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -281,19 +280,47 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: _textController,
-                      maxLines: 8,
-                      minLines: 4,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        hintText: 'Speech will appear here...',
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 120),
+                      child: TextField(
+                        controller: _textController,
+                        maxLines: null,
+                        minLines: 4,
+                        readOnly: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        decoration: InputDecoration(
+                          hintText: 'Speech will appear here...',
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Theme.of(context).colorScheme.surface,
+                          contentPadding: const EdgeInsets.all(12),
+                        ),
+                        style: const TextStyle(fontSize: 16, height: 1.4),
                       ),
-                      style: const TextStyle(fontSize: 16),
                     ),
+                    if (_textController.text.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.copy, size: 20),
+                            onPressed: _copyToClipboard,
+                            tooltip: 'Copy to clipboard',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: _clearText,
+                            tooltip: 'Clear text',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
