@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cleteci_cross_platform/config/theme_provider.dart';
 import 'package:cleteci_cross_platform/models/user_profile.dart';
 import 'package:cleteci_cross_platform/services/user_service.dart';
