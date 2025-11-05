@@ -127,202 +127,206 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     }
   }
 
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: SizedBox(
+        height: 80,
+        child: SvgPicture.asset(
+          'assets/cleteci_logo.svg',
+          semanticsLabel: 'Cleteci Logo',
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarSelector() {
+    return Center(
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundImage: _selectedAvatar != null
+                ? Image.network(_selectedAvatar!.path).image
+                : null,
+            child: _selectedAvatar == null
+                ? const Icon(Icons.person, size: 50)
+                : null,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: () => _pickAvatar(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Galería'),
+              ),
+              TextButton.icon(
+                onPressed: () => _pickAvatar(ImageSource.camera),
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Cámara'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAvatarSelector(),
+                const SizedBox(height: 24),
+                _buildFormFields(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormFields() {
+    return Column(
+      children: [
+        _buildFormField(
+          icon: Icons.person,
+          title: 'Nombre',
+          controller: _firstNameController,
+          hintText: 'Ingresa tu nombre',
+          validator: (value) => value == null || value.isEmpty
+              ? 'Por favor ingresa tu nombre'
+              : null,
+        ),
+        _buildFormField(
+          icon: Icons.person_outline,
+          title: 'Apellido',
+          controller: _lastNameController,
+          hintText: 'Ingresa tu apellido',
+          validator: (value) => value == null || value.isEmpty
+              ? 'Por favor ingresa tu apellido'
+              : null,
+        ),
+        _buildFormField(
+          icon: Icons.email,
+          title: 'Correo electrónico',
+          controller: _emailController,
+          hintText: 'correo@ejemplo.com',
+          keyboardType: TextInputType.emailAddress,
+          validator: _validateEmail,
+        ),
+        _buildFormField(
+          icon: Icons.lock,
+          title: 'Contraseña',
+          controller: _passwordController,
+          hintText: 'Contraseña',
+          obscureText: true,
+          validator: _validatePassword,
+        ),
+        _buildFormField(
+          icon: Icons.lock_outline,
+          title: 'Confirmar contraseña',
+          controller: _confirmPasswordController,
+          hintText: 'Confirmar contraseña',
+          obscureText: true,
+          validator: (value) => value == null || value.isEmpty
+              ? 'Por favor confirma tu contraseña'
+              : null,
+        ),
+      ],
+    );
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingresa tu correo electrónico';
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'Por favor ingresa un correo electrónico válido';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingresa una contraseña';
+    }
+    if (value.length < 6) {
+      return 'La contraseña debe tener al menos 6 caracteres';
+    }
+    return null;
+  }
+
+  Widget _buildActionButtons() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWeb = constraints.maxWidth > 600;
+        final buttonWidth = isWeb ? 400.0 : double.infinity;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: buttonWidth),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _register,
+                    icon: const Icon(Icons.person_add),
+                    label: _isLoading
+                        ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
+                        : const Text('Registrarse'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      minimumSize: Size(buttonWidth, 48),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text('¿Ya tienes cuenta? Inicia sesión'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ThemeData appTheme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registro'),
-        backgroundColor: appTheme.colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header con logo
-           Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              child: SizedBox(
-                                height: 80, // Altura fija más pequeña
-                                child: SvgPicture.asset(
-                                  'assets/cleteci_logo.svg',
-                                  semanticsLabel: 'Cleteci Logo',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-
-            // Formulario centrado con ancho máximo
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 500),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Selector de avatar
-                        Center(
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundImage: _selectedAvatar != null
-                                    ? Image.network(_selectedAvatar!.path).image
-                                    : null,
-                                child: _selectedAvatar == null
-                                    ? const Icon(Icons.person, size: 50)
-                                    : null,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  TextButton.icon(
-                                    onPressed: () => _pickAvatar(ImageSource.gallery),
-                                    icon: const Icon(Icons.photo_library),
-                                    label: const Text('Galería'),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: () => _pickAvatar(ImageSource.camera),
-                                    icon: const Icon(Icons.camera_alt),
-                                    label: const Text('Cámara'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Campos del formulario con distribución similar al perfil
-                        _buildFormField(
-                          icon: Icons.person,
-                          title: 'Nombre',
-                          controller: _firstNameController,
-                          hintText: 'Ingresa tu nombre',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa tu nombre';
-                            }
-                            return null;
-                          },
-                        ),
-                        _buildFormField(
-                          icon: Icons.person_outline,
-                          title: 'Apellido',
-                          controller: _lastNameController,
-                          hintText: 'Ingresa tu apellido',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa tu apellido';
-                            }
-                            return null;
-                          },
-                        ),
-                        _buildFormField(
-                          icon: Icons.email,
-                          title: 'Correo electrónico',
-                          controller: _emailController,
-                          hintText: 'correo@ejemplo.com',
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa tu correo electrónico';
-                            }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Por favor ingresa un correo electrónico válido';
-                            }
-                            return null;
-                          },
-                        ),
-                        _buildFormField(
-                          icon: Icons.lock,
-                          title: 'Contraseña',
-                          controller: _passwordController,
-                          hintText: 'Contraseña',
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una contraseña';
-                            }
-                            if (value.length < 6) {
-                              return 'La contraseña debe tener al menos 6 caracteres';
-                            }
-                            return null;
-                          },
-                        ),
-                        _buildFormField(
-                          icon: Icons.lock_outline,
-                          title: 'Confirmar contraseña',
-                          controller: _confirmPasswordController,
-                          hintText: 'Confirmar contraseña',
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor confirma tu contraseña';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
+            _buildHeader(),
+            _buildForm(),
             const Divider(),
-
-            // Botones de acción
             const SizedBox(height: 24),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWeb = constraints.maxWidth > 600;
-                final buttonWidth = isWeb ? 400.0 : double.infinity;
-
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: buttonWidth),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
-                        children: [
-                          // Botón de registro
-                          ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _register,
-                            icon: const Icon(Icons.person_add),
-                            label: _isLoading
-                                ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
-                                : const Text('Registrarse'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: appTheme.colorScheme.primary,
-                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                              minimumSize: Size(buttonWidth, 48),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Enlace para ir al login
-                          TextButton(
-                            onPressed: () {
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            child: const Text('¿Ya tienes cuenta? Inicia sesión'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+            _buildActionButtons(),
           ],
         ),
       ),

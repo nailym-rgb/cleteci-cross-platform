@@ -11,6 +11,8 @@ class CustomUserProfileScreen extends StatefulWidget {
 }
 
 class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
+  static const String signOutText = 'Cerrar Sesión';
+
   final UserService _userService = UserService();
   UserProfile? _userProfile;
 
@@ -59,77 +61,65 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
   // Métodos de auto-guardado eliminados para control manual
 
-  Future<void> _saveProfile() async {
-    print('Iniciando guardado manual del perfil');
-    print('_userProfile: $_userProfile');
-    print('firstName: ${_firstNameController.text}');
-    print('lastName: ${_lastNameController.text}');
+  Future<void> _createNewProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-    if (_userProfile == null) {
-      print('No hay perfil de usuario, creando uno nuevo');
-      // Si no hay perfil, intentar crear uno
-      try {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          await _userService.createUserProfile(
-            uid: user.uid,
-            email: user.email ?? '',
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-          );
-          // Recargar perfil
-          await _loadUserProfile();
-        }
-      } catch (e) {
-        print('Error al crear perfil: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al crear perfil: $e')),
-          );
-        }
-        return;
-      }
-    } else {
-      print('Actualizando perfil existente');
-      try {
-        await _userService.updateUserProfile(
-          uid: _userProfile!.uid,
-          firstName: _firstNameController.text.trim(),
-          lastName: _lastNameController.text.trim(),
-        );
+    await _userService.createUserProfile(
+      uid: user.uid,
+      email: user.email ?? '',
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+    );
+    await _loadUserProfile();
+  }
 
-        // Actualizar perfil local
-        if (mounted) {
-          setState(() {
-            _userProfile = _userProfile!.copyWith(
-              firstName: _firstNameController.text.trim(),
-              lastName: _lastNameController.text.trim(),
-              updatedAt: DateTime.now(),
-            );
-          });
-        }
-      } catch (e) {
-        print('Error al actualizar perfil: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al actualizar perfil: $e')),
-          );
-        }
-        return;
-      }
-    }
+  Future<void> _updateExistingProfile() async {
+    await _userService.updateUserProfile(
+      uid: _userProfile!.uid,
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+    );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Perfil guardado exitosamente'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      setState(() {
+        _userProfile = _userProfile!.copyWith(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          updatedAt: DateTime.now(),
+        );
+      });
     }
+  }
 
-    print('Perfil guardado exitosamente');
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  void _showSuccessSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Perfil guardado exitosamente'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _saveProfile(BuildContext context) async {
+    try {
+      if (_userProfile == null) {
+        await _createNewProfile();
+      } else {
+        await _updateExistingProfile();
+      }
+      _showSuccessSnackBar(context);
+    } catch (e) {
+      _showErrorSnackBar('Error al guardar perfil: $e');
+    }
   }
 
   Widget _buildEditableField({
@@ -225,193 +215,180 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
     );
   }
 
+  Widget _buildErrorState(Object error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+          const SizedBox(height: 16),
+          Text('Error al cargar perfil: $error'),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadUserProfile,
+            child: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildProfileHeader(),
+          const Divider(),
+          _buildProfileForm(),
+          const Divider(),
+          _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileForm() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEditableField(
+                icon: Icons.person,
+                title: 'Nombre',
+                controller: _firstNameController,
+                hintText: 'Ingresa tu nombre',
+              ),
+              _buildEditableField(
+                icon: Icons.person_outline,
+                title: 'Apellido',
+                controller: _lastNameController,
+                hintText: 'Ingresa tu apellido',
+              ),
+              _buildEditableField(
+                icon: Icons.email,
+                title: 'Correo electrónico',
+                controller: TextEditingController(text: FirebaseAuth.instance.currentUser?.email ?? ''),
+                hintText: 'correo@ejemplo.com',
+                enabled: false,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWeb = constraints.maxWidth > 600;
+        final buttonWidth = isWeb ? 400.0 : double.infinity;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: buttonWidth),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Configuración de Cuenta',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => _saveProfile(context),
+                    icon: const Icon(Icons.save),
+                    label: const Text('Guardar Cambios'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      minimumSize: Size(buttonWidth, 48),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Función próximamente')),
+                    ),
+                    icon: const Icon(Icons.lock),
+                    label: const Text('Cambiar Contraseña'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      minimumSize: Size(buttonWidth, 48),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _showSignOutDialog,
+                    icon: const Icon(Icons.logout),
+                    label: const Text(signOutText),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      minimumSize: Size(buttonWidth, 48),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showSignOutDialog() async {
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(signOutText),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSignOut == true && mounted) {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ThemeData appTheme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil de Usuario'),
-        backgroundColor: appTheme.colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: FutureBuilder<UserProfile?>(
         future: _userService.getCurrentUserProfile(),
         builder: (context, snapshot) {
-          print('FutureBuilder state: ${snapshot.connectionState}');
-          print('FutureBuilder hasData: ${snapshot.hasData}');
-          print('FutureBuilder hasError: ${snapshot.hasError}');
-          if (snapshot.hasError) {
-            print('FutureBuilder error: ${snapshot.error}');
-          }
-          if (snapshot.hasData) {
-            print('FutureBuilder data: ${snapshot.data}');
-          }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text('Error al cargar perfil: ${snapshot.error}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadUserProfile,
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
+            return _buildErrorState(snapshot.error!);
           }
 
           _userProfile = snapshot.data;
-          print('Asignando _userProfile: $_userProfile');
-
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildProfileHeader(),
-                const Divider(),
-
-                // Información adicional del perfil
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildEditableField(
-                            icon: Icons.person,
-                            title: 'Nombre',
-                            controller: _firstNameController,
-                            hintText: 'Ingresa tu nombre',
-                          ),
-                          _buildEditableField(
-                            icon: Icons.person_outline,
-                            title: 'Apellido',
-                            controller: _lastNameController,
-                            hintText: 'Ingresa tu apellido',
-                          ),
-                          _buildEditableField(
-                            icon: Icons.email,
-                            title: 'Correo electrónico',
-                            controller: TextEditingController(text: FirebaseAuth.instance.currentUser?.email ?? ''),
-                            hintText: 'correo@ejemplo.com',
-                            enabled: false,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const Divider(),
-
-                // Botones de acción simples en lugar de ProfileScreen completo
-                const SizedBox(height: 24),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Determinar si es web (ancho > 600) o mobile
-                    final isWeb = constraints.maxWidth > 600;
-                    final buttonWidth = isWeb ? 400.0 : double.infinity;
-
-                    return Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: buttonWidth),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
-                            children: [
-                              const Text(
-                                'Configuración de Cuenta',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Botón de guardar cambios
-                              ElevatedButton.icon(
-                                onPressed: _saveProfile,
-                                icon: const Icon(Icons.save),
-                                label: const Text('Guardar Cambios'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                                  minimumSize: Size(buttonWidth, 48),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: () async {
-                                   // TODO: Implementar cambio de contraseña
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Función próximamente')),
-                                  );
-                                },
-                                icon: const Icon(Icons.logout),
-                                label: const Text('Cambiar Contraseña'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                                  minimumSize: Size(buttonWidth, 48),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  final shouldSignOut = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Cerrar Sesión'),
-                                      content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
-                                          child: const Text('Cancelar'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
-                                          child: const Text('Cerrar Sesión'),
-                                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (shouldSignOut == true && mounted) {
-                                    await FirebaseAuth.instance.signOut();
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  }
-                                },
-                                icon: const Icon(Icons.lock),
-                                label: const Text('Cerrar Sesión'),
-                                style: ElevatedButton.styleFrom(                        
-                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                                  minimumSize: Size(buttonWidth, 48),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
+          return _buildProfileContent();
         },
       ),
     );
