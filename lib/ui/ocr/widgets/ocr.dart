@@ -114,6 +114,8 @@ class OCRScreenState extends State<OCRScreen> {
   }
 
   void _showErrorSnackbar(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
     );
@@ -267,9 +269,11 @@ class OCRScreenState extends State<OCRScreen> {
                 tooltip: 'Copy to Clipboard',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: _extractedText));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Text copied to clipboard')),
-                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Text copied to clipboard')),
+                    );
+                  }
                 },
               ),
           ],
