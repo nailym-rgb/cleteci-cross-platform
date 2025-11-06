@@ -7,6 +7,8 @@ import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i3;
+import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart'
+    as _i6;
 import 'package:speech_to_text/speech_to_text.dart' as _i2;
 import 'package:speech_to_text_platform_interface/speech_to_text_platform_interface.dart'
     as _i5;
@@ -202,4 +204,18 @@ class MockSpeechToText extends _i1.Mock implements _i2.SpeechToText {
             returnValue: _i4.Future<_i2.LocaleName?>.value(),
           )
           as _i4.Future<_i2.LocaleName?>);
+}
+
+/// A class which mocks [Permission].
+///
+/// See the documentation for Mockito's code generation for more information.
+// ignore: must_be_immutable
+class MockPermission extends _i1.Mock implements _i6.Permission {
+  MockPermission() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  int get value =>
+      (super.noSuchMethod(Invocation.getter(#value), returnValue: 0) as int);
 }

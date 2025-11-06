@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Modelo de datos para el perfil de usuario en Firestore
 class UserProfile {
+  static const _sentinel = Object();
   final String uid;
   final String email;
   final String firstName;
@@ -57,7 +58,7 @@ class UserProfile {
   UserProfile copyWith({
     String? firstName,
     String? lastName,
-    String? avatarUrl,
+    Object? avatarUrl = _sentinel,
     DateTime? updatedAt,
   }) {
     return UserProfile(
@@ -65,7 +66,7 @@ class UserProfile {
       email: email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarUrl: identical(avatarUrl, _sentinel) ? this.avatarUrl : avatarUrl as String?,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
