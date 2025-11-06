@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 List<Widget> pages = <Widget>[
   const PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Color(0xFF2196F3)),
-  const OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
+  OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
   const SpeechToTextScreen(),
   const ThemeSettingsScreen(),
 ];
