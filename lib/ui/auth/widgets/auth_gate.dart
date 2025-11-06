@@ -171,7 +171,7 @@ class AuthGate extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute<RegisterScreen>(
-                          builder: (context) => const CustomRegisterForm(),
+                          builder: (context) => CustomRegisterForm(),
                         ),
                       );
                     },

@@ -6,7 +6,12 @@ import '../../../services/user_service.dart';
 
 /// Formulario personalizado de registro que incluye campos adicionales
 class CustomRegisterForm extends StatefulWidget {
-  const CustomRegisterForm({super.key});
+  CustomRegisterForm({super.key, UserService? userService, FirebaseAuth? auth})
+      : _userService = userService ?? UserService(),
+        _auth = auth ?? FirebaseAuth.instance;
+
+  final UserService _userService;
+  final FirebaseAuth _auth;
 
   @override
   State<CustomRegisterForm> createState() => _CustomRegisterFormState();
@@ -21,7 +26,9 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
   final _confirmPasswordController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
-  final UserService _userService = UserService();
+
+  UserService get _userService => widget._userService;
+  FirebaseAuth get _auth => widget._auth;
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
@@ -75,7 +82,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
 
     try {
       // Crear usuario en Firebase Auth
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
