@@ -11,7 +11,7 @@ class UserProfile {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  UserProfile({
+  const UserProfile({
     required this.uid,
     required this.email,
     required this.firstName,

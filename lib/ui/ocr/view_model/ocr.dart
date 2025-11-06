@@ -5,7 +5,7 @@ import 'package:aws_textract_api/textract-2018-06-27.dart';
 class TextractService {
   final Textract _service;
 
-  TextractService(this._service);
+  const TextractService(this._service);
 
   Future<String> detectText(Uint8List imageBytes) async {
     try {

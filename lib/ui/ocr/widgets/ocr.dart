@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OCRScreen extends StatefulWidget {
+  // ignore: prefer_const_constructors_in_immutables
   OCRScreen({
     super.key,
     required this.title,
@@ -15,8 +16,8 @@ class OCRScreen extends StatefulWidget {
     ImagePicker? imagePicker,
     String Function(String, {String? fallback})? envGetter,
   }) : _textractService = textractService,
-       _imagePicker = imagePicker,
-       _envGetter = envGetter ?? _safeEnvGetter;
+        _imagePicker = imagePicker,
+        _envGetter = envGetter ?? _safeEnvGetter;
 
   final String title;
   final IconData icon;
