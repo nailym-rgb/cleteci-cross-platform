@@ -22,7 +22,7 @@ class AppTheme {
     return ThemeData(
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.scaffoldBackground,
-      appBarTheme: AppBarThemeData(
+      appBarTheme: const AppBarThemeData(
         centerTitle: false,
         foregroundColor: AppColors.appBarForeground,
       ),
