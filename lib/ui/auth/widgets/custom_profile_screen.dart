@@ -122,7 +122,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
       } else {
         await _updateExistingProfile();
       }
-      _showSuccessSnackBar(context);
+      if (mounted) {
+        _showSuccessSnackBar(context);
+      }
     } catch (e) {
       _showErrorSnackBar('Error al guardar perfil: $e');
     }
