@@ -9,7 +9,7 @@ import 'package:cleteci_cross_platform/services/user_service.dart';
 
 // Generate mocks
 @GenerateMocks([ImagePicker, UserService, XFile])
-import 'edit_profile_dialog_test.mocks.dart';
+import 'edit_profile_dialog_test_new.mocks.dart';
 
 void main() {
   late MockImagePicker mockImagePicker;
@@ -24,7 +24,6 @@ void main() {
       email: 'test@example.com',
       firstName: 'John',
       lastName: 'Doe',
-      avatarUrl: 'https://example.com/avatar.jpg',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -39,7 +38,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -62,7 +64,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -87,7 +92,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -112,7 +120,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -141,7 +152,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -170,7 +184,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -205,7 +222,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -232,7 +252,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -257,7 +280,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -294,7 +320,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: profileWithoutAvatar),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: profileWithoutAvatar,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
@@ -318,7 +347,10 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (context) => EditProfileDialog(userProfile: testUserProfile),
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    userService: mockUserService,
+                  ),
                 ),
                 child: const Text('Show Dialog'),
               ),
