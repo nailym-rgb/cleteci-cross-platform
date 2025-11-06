@@ -6,19 +6,42 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OCRScreen extends StatefulWidget {
-  const OCRScreen({
+  OCRScreen({
     super.key,
-    required String title,
-    required IconData icon,
-    required MaterialColor color,
-  });
+    required this.title,
+    required this.icon,
+    required this.color,
+    TextractService? textractService,
+    ImagePicker? imagePicker,
+    String Function(String, {String? fallback})? envGetter,
+  }) : _textractService = textractService,
+       _imagePicker = imagePicker,
+       _envGetter = envGetter ?? _safeEnvGetter;
+
+  final String title;
+  final IconData icon;
+  final MaterialColor color;
+  final TextractService? _textractService;
+  final ImagePicker? _imagePicker;
+  final String Function(String, {String? fallback}) _envGetter;
+
+  // Safe environment getter that handles dotenv errors
+  static String _safeEnvGetter(String key, {String? fallback}) {
+    try {
+      return dotenv.get(key, fallback: fallback ?? '');
+    } catch (e) {
+      // If dotenv is not available or key doesn't exist, return fallback
+      return fallback ?? '';
+    }
+  }
 
   @override
   OCRScreenState createState() => OCRScreenState();
 }
 
 class OCRScreenState extends State<OCRScreen> {
-  final ImagePicker _picker = ImagePicker();
+  late final ImagePicker _picker;
+  late final TextractService _textractService;
 
   // Textract Service Initialization
   late final String accessKey;
@@ -28,17 +51,23 @@ class OCRScreenState extends State<OCRScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize AWS credentials with fallback values
-    accessKey = dotenv.get('AZ_ACCESS_KEY', fallback: '');
-    secretKey = dotenv.get('AZ_SECRET_KEY', fallback: '');
-    awsRegion = dotenv.get('AZ_REGION', fallback: 'us-east-1');
+    // Initialize dependencies
+    _picker = widget._imagePicker ?? ImagePicker();
+
+    // Initialize AWS credentials with fallback values first
+    accessKey = widget._envGetter('AZ_ACCESS_KEY', fallback: '');
+    secretKey = widget._envGetter('AZ_SECRET_KEY', fallback: '');
+    awsRegion = widget._envGetter('AZ_REGION', fallback: 'us-east-1');
+
+    // Then initialize textract service with the credentials
+    _textractService = widget._textractService ?? _createTextractService();
   }
 
-  AwsClientCredentials get credentials =>
-      AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
-  Textract get service => Textract(region: awsRegion, credentials: credentials);
-
-  TextractService get _textractService => TextractService(service);
+  TextractService _createTextractService() {
+    final credentials = AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
+    final service = Textract(region: awsRegion, credentials: credentials);
+    return TextractService(service);
+  }
 
   XFile? _pickedImage;
   String _extractedText = '';
