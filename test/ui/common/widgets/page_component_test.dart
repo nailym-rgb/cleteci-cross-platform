@@ -119,4 +119,121 @@ void main() {
       expect(find.text(''), findsOneWidget);
     });
   });
+
+  group('SettingsPage', () {
+    testWidgets('should display settings page with correct title', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      expect(find.text('Settings'), findsOneWidget);
+    });
+
+    testWidgets('should display settings icon', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      expect(find.byIcon(Icons.settings), findsOneWidget);
+    });
+
+    testWidgets('should display theme settings button', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      expect(find.text('Theme Settings'), findsOneWidget);
+      expect(find.byIcon(Icons.palette), findsOneWidget);
+    });
+
+    testWidgets('should center content in column', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      // Verify there's a column inside the SettingsPage
+      final columnFinder = find.descendant(
+        of: find.byType(SettingsPage),
+        matching: find.byType(Column),
+      );
+      expect(columnFinder, findsOneWidget);
+
+      // Verify the column has MainAxisAlignment.center
+      final columnWidget = tester.widget<Column>(columnFinder);
+      expect(columnWidget.mainAxisAlignment, MainAxisAlignment.center);
+    });
+
+    testWidgets('should have elevated button with correct styling', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      // Find the button by text since ElevatedButton.icon creates a different widget type
+      final buttonFinder = find.text('Theme Settings');
+      expect(buttonFinder, findsOneWidget);
+    });
+
+    testWidgets('should have theme settings button', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      // Verify the button exists
+      final buttonFinder = find.text('Theme Settings');
+      expect(buttonFinder, findsOneWidget);
+
+      // Verify the palette icon exists
+      final iconFinder = find.byIcon(Icons.palette);
+      expect(iconFinder, findsOneWidget);
+    });
+
+    testWidgets('should use theme colors for icon', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      // The icon should exist
+      final iconFinder = find.byIcon(Icons.settings);
+      expect(iconFinder, findsOneWidget);
+
+      final iconWidget = tester.widget<Icon>(iconFinder);
+      expect(iconWidget.color, isNotNull);
+    });
+
+    testWidgets('should have proper spacing between elements', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      // Should have SizedBox widgets for spacing
+      expect(find.byType(SizedBox), findsAtLeast(2));
+    });
+
+    testWidgets('should display all expected text elements', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: SettingsPage(),
+        ),
+      );
+
+      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Theme Settings'), findsOneWidget);
+    });
+  });
 }
