@@ -36,7 +36,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
       backgroundColor: appTheme.colorScheme.primary,
       title: Text(
         widget.title,
-        key: Key('app-bar-title'),
+        key: const Key('app-bar-title'),
         textAlign: TextAlign.left,
       ),
     );

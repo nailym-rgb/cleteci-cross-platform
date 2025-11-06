@@ -15,7 +15,7 @@ class SpeechService {
       // Request microphone permission
       final status = await Permission.microphone.request();
       if (!status.isGranted) {
-        throw SpeechServiceException('Microphone permission denied');
+        throw const SpeechServiceException('Microphone permission denied');
       }
 
       // Initialize speech to text
@@ -55,7 +55,7 @@ class SpeechService {
     }
 
     if (!await isAvailable()) {
-      throw SpeechServiceException('Speech recognition is not available');
+      throw const SpeechServiceException('Speech recognition is not available');
     }
 
     await _speechToText.listen(
