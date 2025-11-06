@@ -6,10 +6,12 @@ import '../../../services/user_service.dart';
 /// Diálogo para editar el perfil de usuario
 class EditProfileDialog extends StatefulWidget {
   final UserProfile userProfile;
+  final UserService? userService;
 
   const EditProfileDialog({
     super.key,
     required this.userProfile,
+    this.userService,
   });
 
   @override
@@ -22,7 +24,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   final _lastNameController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
-  final UserService _userService = UserService();
+  late final UserService _userService;
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
@@ -30,6 +32,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   @override
   void initState() {
     super.initState();
+    _userService = widget.userService ?? UserService();
     _firstNameController.text = widget.userProfile.firstName;
     _lastNameController.text = widget.userProfile.lastName;
   }
