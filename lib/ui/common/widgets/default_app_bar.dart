@@ -82,14 +82,16 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                 IconButton(
                   icon: const Icon(Icons.person),
                   onPressed: () async {
-                    final shouldNavigate = await handleOnPressedProfile();
-                    if (shouldNavigate && mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<ProfileScreen>(
-                          builder: (context) => CustomUserProfileScreen(),
-                        ),
-                      );
+                    if (mounted) {
+                      final shouldNavigate = await handleOnPressedProfile();
+                      if (shouldNavigate) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<ProfileScreen>(
+                            builder: (context) => CustomUserProfileScreen(),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
