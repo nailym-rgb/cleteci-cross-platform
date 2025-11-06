@@ -28,7 +28,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         ? Firebase.initializeApp()
         : Future.value();
 
-    void handleOnPressedProfile() async {
+    Future<bool> handleOnPressedProfile() async {
       if (appState.supportState == LocalAuthSupportState.supported) {
         await appState.authenticateWithBiometrics();
       }
@@ -36,17 +36,8 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
       // Since we're not handling sensitive data, we just navigate to
       // the profile screen if the device does not support biometric
       // authentication.
-      if (appState.authorized == LocalAuthStateValue.authorized ||
-          appState.supportState == LocalAuthSupportState.unsupported) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute<ProfileScreen>(
-              builder: (context) => CustomUserProfileScreen(),
-            ),
-          );
-        }
-      }
+      return appState.authorized == LocalAuthStateValue.authorized ||
+          appState.supportState == LocalAuthSupportState.unsupported;
     }
 
     return FutureBuilder(
@@ -90,7 +81,17 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.person),
-                  onPressed: handleOnPressedProfile,
+                  onPressed: () async {
+                    final shouldNavigate = await handleOnPressedProfile();
+                    if (shouldNavigate && mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<ProfileScreen>(
+                          builder: (context) => CustomUserProfileScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
               automaticallyImplyLeading: false,

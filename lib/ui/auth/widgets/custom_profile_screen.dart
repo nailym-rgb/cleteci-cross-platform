@@ -105,7 +105,8 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
     );
   }
 
-  void _showSuccessSnackBar(BuildContext context) {
+  void _showSuccessSnackBar() {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Perfil guardado exitosamente'),
@@ -122,9 +123,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
       } else {
         await _updateExistingProfile();
       }
-      if (mounted) {
-        _showSuccessSnackBar(context);
-      }
+      _showSuccessSnackBar();
     } catch (e) {
       _showErrorSnackBar('Error al guardar perfil: $e');
     }
