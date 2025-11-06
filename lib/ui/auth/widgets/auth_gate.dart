@@ -19,7 +19,7 @@ class AuthGate extends StatelessWidget {
 
   Widget _buildTestModeUI() {
     return Scaffold(
-      appBar: DefaultAppBar(title: signIn),
+      appBar: const DefaultAppBar(title: signIn),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
@@ -43,7 +43,7 @@ class AuthGate extends StatelessWidget {
                 const SizedBox(height: 20),
                 Semantics(
                   label: 'email-input',
-                  child: TextField(
+                  child: const TextField(
                     key: const Key('email-field'),
                     decoration: const InputDecoration(
                       labelText: 'Email',
@@ -55,7 +55,7 @@ class AuthGate extends StatelessWidget {
                 const SizedBox(height: 16),
                 Semantics(
                   label: 'password-input',
-                  child: TextField(
+                  child: const TextField(
                     key: const Key('password-field'),
                     decoration: const InputDecoration(
                       labelText: 'Password',
@@ -111,7 +111,7 @@ class AuthGate extends StatelessWidget {
 
   Widget _buildProductionUI() {
     return Scaffold(
-      appBar: DefaultAppBar(title: signIn),
+      appBar: const DefaultAppBar(title: signIn),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
@@ -125,7 +125,7 @@ class AuthGate extends StatelessWidget {
                   context,
                   MaterialPageRoute<ForgotPasswordScreen>(
                     builder: (context) => Scaffold(
-                      appBar: DefaultAppBar(title: 'Forgotten Password'),
+                      appBar: const DefaultAppBar(title: 'Forgotten Password'),
                       body: Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 500),
@@ -152,7 +152,7 @@ class AuthGate extends StatelessWidget {
                 ),
               ),
             ),
-            subtitleBuilder: (context, action) => Padding(
+            subtitleBuilder: (context, action) => const Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: const Text(
                 'Welcome to Cleteci Cross Platform, please sign in!',

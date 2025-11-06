@@ -5,10 +5,10 @@ import 'package:cleteci_cross_platform/ui/settings/widgets/theme_settings_screen
 import 'package:flutter/material.dart';
 
 List<Widget> pages = <Widget>[
-  PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Color(0xFF2196F3)),
-  OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
-  SpeechToTextScreen(),
-  ThemeSettingsScreen(),
+  const PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Color(0xFF2196F3)),
+  const OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
+  const SpeechToTextScreen(),
+  const ThemeSettingsScreen(),
 ];
 
 class DrawerEntryDestination {
