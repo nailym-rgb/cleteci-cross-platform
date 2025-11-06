@@ -113,7 +113,7 @@ class SpeechService {
 class SpeechServiceException implements Exception {
   final String message;
 
-  SpeechServiceException(this.message);
+  const SpeechServiceException(this.message);
 
   @override
   String toString() => 'SpeechServiceException: $message';
