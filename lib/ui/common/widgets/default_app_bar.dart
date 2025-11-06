@@ -83,7 +83,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
           onPressed: () async {
             if (mounted) {
               final shouldNavigate = await _handleOnPressedProfile(appState);
-              if (shouldNavigate) {
+              if (shouldNavigate && context.mounted) {
                 Navigator.push(
                   context,
                   MaterialPageRoute<ProfileScreen>(
