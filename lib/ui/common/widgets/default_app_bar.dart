@@ -33,7 +33,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         await appState.authenticateWithBiometrics();
       }
 
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       // Since we're not handling sensitive data, we just navigate to
       // the profile screen if the device does not support biometric
