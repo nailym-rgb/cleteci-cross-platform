@@ -4,7 +4,12 @@ import '../../../models/user_profile.dart';
 import '../../../services/user_service.dart';
 
 class CustomUserProfileScreen extends StatefulWidget {
-  const CustomUserProfileScreen({super.key});
+  CustomUserProfileScreen({super.key, UserService? userService, FirebaseAuth? auth})
+      : _userService = userService ?? UserService(),
+        _auth = auth ?? FirebaseAuth.instance;
+
+  final UserService _userService;
+  final FirebaseAuth _auth;
 
   @override
   State<CustomUserProfileScreen> createState() => _CustomUserProfileScreenState();
@@ -13,7 +18,8 @@ class CustomUserProfileScreen extends StatefulWidget {
 class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   static const String signOutText = 'Cerrar Sesión';
 
-  final UserService _userService = UserService();
+  UserService get _userService => widget._userService;
+  FirebaseAuth get _auth => widget._auth;
   UserProfile? _userProfile;
 
   // Controladores para edición directa
@@ -62,7 +68,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   // Métodos de auto-guardado eliminados para control manual
 
   Future<void> _createNewProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     if (user == null) return;
 
     await _userService.createUserProfile(
@@ -204,7 +210,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
           // Email
           Text(
-            FirebaseAuth.instance.currentUser?.email ?? '',
+            _auth.currentUser?.email ?? '',
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).disabledColor.withOpacity(0.6),
@@ -271,7 +277,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
               _buildEditableField(
                 icon: Icons.email,
                 title: 'Correo electrónico',
-                controller: TextEditingController(text: FirebaseAuth.instance.currentUser?.email ?? ''),
+                controller: TextEditingController(text: _auth.currentUser?.email ?? ''),
                 hintText: 'correo@ejemplo.com',
                 enabled: false,
               ),
@@ -364,7 +370,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
     );
 
     if (shouldSignOut == true && mounted) {
-      await FirebaseAuth.instance.signOut();
+      await _auth.signOut();
       if (mounted) Navigator.of(context).pop();
     }
   }

@@ -43,7 +43,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
         Navigator.push(
           context,
           MaterialPageRoute<ProfileScreen>(
-            builder: (context) => const CustomUserProfileScreen(),
+            builder: (context) => CustomUserProfileScreen(),
           ),
         );
       }

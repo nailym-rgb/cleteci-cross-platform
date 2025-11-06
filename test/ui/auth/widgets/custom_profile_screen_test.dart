@@ -68,7 +68,7 @@ void main() {
     return ChangeNotifierProvider<ThemeProvider>(
       create: (_) => themeProvider,
       child: MaterialApp(
-        home: CustomUserProfileScreen(),
+        home: CustomUserProfileScreen(userService: mockUserService, auth: mockAuth),
       ),
     );
   }

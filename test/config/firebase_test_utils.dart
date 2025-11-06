@@ -9,7 +9,6 @@ Future<void> setupFirebaseTestMocks() async {
   // This will work for basic testing without full Firebase mocking
   try {
     await Firebase.initializeApp(
-      name: 'test',
       options: const FirebaseOptions(
         apiKey: 'test-api-key',
         appId: 'test-app-id',
