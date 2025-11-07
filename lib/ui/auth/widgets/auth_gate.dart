@@ -44,8 +44,8 @@ class AuthGate extends StatelessWidget {
                 Semantics(
                   label: 'email-input',
                   child: const TextField(
-                    key: const Key('email-field'),
-                    decoration: const InputDecoration(
+                    key: Key('email-field'),
+                    decoration: InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
                     ),
@@ -56,8 +56,8 @@ class AuthGate extends StatelessWidget {
                 Semantics(
                   label: 'password-input',
                   child: const TextField(
-                    key: const Key('password-field'),
-                    decoration: const InputDecoration(
+                    key: Key('password-field'),
+                    decoration: InputDecoration(
                       labelText: 'Password',
                       border: OutlineInputBorder(),
                     ),
@@ -153,8 +153,8 @@ class AuthGate extends StatelessWidget {
               ),
             ),
             subtitleBuilder: (context, action) => const Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: const Text(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
                 'Welcome to Cleteci Cross Platform, please sign in!',
                 key: Key('auth-subtitle'),
               ),
