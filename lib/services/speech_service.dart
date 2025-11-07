@@ -66,9 +66,11 @@ class SpeechService {
       listenFor: listenFor != null ? Duration(seconds: listenFor) : null,
       pauseFor: pauseFor != null ? Duration(seconds: pauseFor) : null,
       localeId: localeId,
-      cancelOnError: true,
-      partialResults: true,
-      onDevice: true,
+      listenOptions: stt.SpeechListenOptions(
+        cancelOnError: true,
+        partialResults: true,
+        onDevice: true,
+      ),
     );
 
     onListeningStarted();

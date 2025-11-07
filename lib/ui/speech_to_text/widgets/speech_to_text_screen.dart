@@ -209,7 +209,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                       size: 48,
                       color: _isListening
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(height: 8),
                     Text(
