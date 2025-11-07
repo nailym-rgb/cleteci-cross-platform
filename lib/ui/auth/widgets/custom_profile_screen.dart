@@ -363,8 +363,8 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(signOutText),
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            child: const Text(signOutText),
           ),
         ],
       ),

@@ -227,7 +227,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                         height: 4,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: FractionallySizedBox(
