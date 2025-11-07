@@ -167,11 +167,11 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                 border: const OutlineInputBorder(),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 filled: !enabled,
-                fillColor: enabled ? null : Theme.of(context).disabledColor.withOpacity(0.1),
+                fillColor: enabled ? null : Theme.of(context).disabledColor.withValues(alpha: 0.1),
               ),
               style: TextStyle(
                 fontSize: 16,
-                color: enabled ? null : Theme.of(context).disabledColor.withOpacity(0.6),
+                color: enabled ? null : Theme.of(context).disabledColor.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -214,7 +214,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
             _auth.currentUser?.email ?? '',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).disabledColor.withOpacity(0.6),
+              color: Theme.of(context).disabledColor.withValues(alpha: 0.6),
             ),
           ),
         ],

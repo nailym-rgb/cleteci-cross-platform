@@ -143,7 +143,7 @@ class _ThemeSettingsScreenState extends State<ThemeSettingsScreen> {
             Text(
               subtitle,
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -339,9 +339,9 @@ class _ColorPickerState extends State<ColorPicker> {
 
   void _showCustomColorPicker(BuildContext context) {
     // Simple RGB sliders for custom color selection
-    int red = _selectedColor.red;
-    int green = _selectedColor.green;
-    int blue = _selectedColor.blue;
+    int red = (_selectedColor.r * 255.0).round() & 0xff;
+    int green = (_selectedColor.g * 255.0).round() & 0xff;
+    int blue = (_selectedColor.b * 255.0).round() & 0xff;
 
     showDialog(
       context: context,

@@ -17,7 +17,7 @@ class AuthGate extends StatelessWidget {
   static const signIn = 'sign-in';
   final FirebaseAuth auth;
 
-  Widget _buildTestModeUI() {
+  Widget _buildTestModeUI(BuildContext context) {
     return Scaffold(
       appBar: const DefaultAppBar(title: signIn),
       body: Center(
@@ -76,6 +76,10 @@ class AuthGate extends StatelessWidget {
                           password: 'testpassword123',
                         );
                       } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Sign in failed: $e')),
+                        );
                       }
                     },
                     child: const Text(signIn),
@@ -199,7 +203,7 @@ class AuthGate extends StatelessWidget {
           stream: auth.authStateChanges(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return auth is MockFirebaseAuth ? _buildTestModeUI() : _buildProductionUI();
+              return auth is MockFirebaseAuth ? _buildTestModeUI(context) : _buildProductionUI();
             }
             return const DefaultPage(title: 'Cleteci Cross Platform Homepage');
           },
