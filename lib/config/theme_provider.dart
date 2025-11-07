@@ -118,42 +118,42 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> setPrimaryColor(Color color) async {
     _primaryColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_primaryColorKey, color.value);
+    await prefs.setInt(_primaryColorKey, color.toARGB32());
     notifyListeners();
   }
 
   Future<void> setSeedColor(Color color) async {
     _seedColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_seedColorKey, color.value);
+    await prefs.setInt(_seedColorKey, color.toARGB32());
     notifyListeners();
   }
 
   Future<void> setAppBarTextColor(Color color) async {
     _customAppBarTextColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_appBarTextColorKey, color.value);
+    await prefs.setInt(_appBarTextColorKey, color.toARGB32());
     notifyListeners();
   }
 
   Future<void> setButtonTextColor(Color color) async {
     _customButtonTextColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_buttonTextColorKey, color.value);
+    await prefs.setInt(_buttonTextColorKey, color.toARGB32());
     notifyListeners();
   }
 
   Future<void> setErrorColor(Color color) async {
     _customErrorColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_errorColorKey, color.value);
+    await prefs.setInt(_errorColorKey, color.toARGB32());
     notifyListeners();
   }
 
   Future<void> setErrorTextColor(Color color) async {
     _customErrorTextColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_errorTextColorKey, color.value);
+    await prefs.setInt(_errorTextColorKey, color.toARGB32());
     notifyListeners();
   }
 

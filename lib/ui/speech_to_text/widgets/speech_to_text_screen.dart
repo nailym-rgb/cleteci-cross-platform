@@ -18,7 +18,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
   bool _isListening = false;
   bool _isLoading = false;
   String _statusMessage = 'Tap the microphone to start listening';
-  String _currentLocale = 'en-US';
+  final String _currentLocale = 'en-US';
   double _soundLevel = 0.0;
 
   @override
@@ -186,6 +186,12 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
 
   @override
   Widget build(BuildContext context) {
+    VoidCallback? onPressed;
+    if (_isLoading) {
+      onPressed = null;
+    } else {
+      onPressed = _isListening ? _stopListening : _startListening;
+    }
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -246,9 +252,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
             // Control Button
             Center(
               child: ElevatedButton.icon(
-                onPressed: _isLoading
-                    ? null
-                    : (_isListening ? _stopListening : _startListening),
+                onPressed: onPressed,
                 icon: Icon(_isListening ? Icons.stop : Icons.mic),
                 label: Text(_isListening ? 'Stop Listening' : 'Start Listening'),
                 style: ElevatedButton.styleFrom(

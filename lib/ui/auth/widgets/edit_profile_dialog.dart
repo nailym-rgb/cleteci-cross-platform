@@ -117,6 +117,14 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider? backgroundImage;
+    if (_selectedAvatar != null) {
+      backgroundImage = Image.network(_selectedAvatar!.path).image;
+    } else if (widget.userProfile.avatarUrl != null) {
+      backgroundImage = NetworkImage(widget.userProfile.avatarUrl!);
+    } else {
+      backgroundImage = null;
+    }
     return AlertDialog(
       title: const Text('Editar Perfil'),
       content: SingleChildScrollView(
@@ -131,11 +139,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundImage: _selectedAvatar != null
-                          ? Image.network(_selectedAvatar!.path).image
-                          : (widget.userProfile.avatarUrl != null
-                              ? NetworkImage(widget.userProfile.avatarUrl!)
-                              : null),
+                      backgroundImage: backgroundImage,
                       child: (_selectedAvatar == null && widget.userProfile.avatarUrl == null)
                           ? Text(
                               widget.userProfile.initials,
