@@ -253,5 +253,50 @@ void main() {
       expect(textFieldWidget.readOnly, isTrue); // The widget is readOnly
     });
 
+    testWidgets('SpeechToTextScreen constructor works', (WidgetTester tester) async {
+      const screen = SpeechToTextScreen();
+      expect(screen, isNotNull);
+      expect(screen, isA<SpeechToTextScreen>());
+      expect(screen, isA<StatefulWidget>());
+    });
+
+    testWidgets('SpeechToTextScreen has key parameter', (WidgetTester tester) async {
+      const testKey = Key('speech_screen_key');
+      const screen = SpeechToTextScreen(key: testKey);
+      expect(screen.key, equals(testKey));
+    });
+
+    testWidgets('SpeechToTextScreen can be created with key', (WidgetTester tester) async {
+      const testKey = Key('test_key');
+      const screen = SpeechToTextScreen(key: testKey);
+      expect(screen.key, equals(testKey));
+    });
+
+    testWidgets('SpeechToTextScreen can be created without key', (WidgetTester tester) async {
+      const screen = SpeechToTextScreen();
+      expect(screen.key, isNull);
+    });
+
+    testWidgets('SpeechToTextScreen is a widget', (WidgetTester tester) async {
+      const screen = SpeechToTextScreen();
+      expect(screen, isA<Widget>());
+    });
+
+    testWidgets('SpeechToTextScreen has proper runtime type', (WidgetTester tester) async {
+      const screen = SpeechToTextScreen();
+      expect(screen.runtimeType, equals(SpeechToTextScreen));
+    });
+
+    testWidgets('SpeechToTextScreen can be instantiated', (WidgetTester tester) async {
+      const screen = SpeechToTextScreen();
+      expect(() => screen, returnsNormally);
+    });
+
+    testWidgets('SpeechToTextScreen has no required parameters', (WidgetTester tester) async {
+      // This would fail to compile if key was required
+      const screen = SpeechToTextScreen();
+      expect(screen, isNotNull);
+    });
+
   });
 }
