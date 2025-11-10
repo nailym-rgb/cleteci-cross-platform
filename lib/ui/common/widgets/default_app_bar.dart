@@ -1,3 +1,5 @@
+import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/services/auth_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,22 +44,10 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
     );
   }
 
-  Widget _buildFutureBuilder(BuildContext context, AsyncSnapshot snapshot) {
-    if (snapshot.connectionState != ConnectionState.done) {
-      // Show a loading indicator while Firebase initializes
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // Firebase is initialized, proceed with auth logic
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: _buildStreamBuilder,
-    );
-  }
 
   Widget _buildStreamBuilder(BuildContext context, AsyncSnapshot<User?> snapshot) {
     final ThemeData appTheme = Theme.of(context);
-    final appState = Provider.of<LocalAuthState>(context);
+    final appState = getIt<LocalAuthState>();
     bool isLoggedIn = snapshot.hasData;
 
     if (!isLoggedIn) {
@@ -101,15 +91,14 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<LocalAuthState>(context);
+    // Get LocalAuthState from service locator instead of Provider
+    final appState = getIt<LocalAuthState>();
 
-    Future<dynamic> futureBuilder = Firebase.apps.isEmpty
-        ? Firebase.initializeApp()
-        : Future.value();
-
-    return FutureBuilder(
-      future: futureBuilder,
-      builder: _buildFutureBuilder,
+    // Firebase is initialized, proceed with auth logic
+    final authService = getIt<AuthService>();
+    return StreamBuilder<User?>(
+      stream: authService.authStateChanges,
+      builder: _buildStreamBuilder,
     );
   }
 }
