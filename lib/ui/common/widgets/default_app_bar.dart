@@ -3,10 +3,8 @@ import 'package:cleteci_cross_platform/services/auth_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
   const DefaultAppBar({super.key, required this.title});
@@ -92,7 +90,6 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
   @override
   Widget build(BuildContext context) {
     // Get LocalAuthState from service locator instead of Provider
-    final appState = getIt<LocalAuthState>();
 
     // Firebase is initialized, proceed with auth logic
     final authService = getIt<AuthService>();
