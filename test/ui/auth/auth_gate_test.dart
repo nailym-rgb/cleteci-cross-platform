@@ -352,5 +352,27 @@ void main() {
       // Assert - should handle future builder loading state
       expect(find.byType(FutureBuilder), findsOneWidget);
     });
+
+    testWidgets('AuthGate constructor works', (WidgetTester tester) async {
+      final authGate = AuthGate();
+      expect(authGate, isNotNull);
+      expect(authGate, isA<AuthGate>());
+      expect(authGate.auth, isNull);
+    });
+
+    testWidgets('AuthGate constructor with auth parameter', (WidgetTester tester) async {
+      final authGate = AuthGate(auth: mockAuth);
+      expect(authGate, isNotNull);
+      expect(authGate.auth, equals(mockAuth));
+    });
+
+    testWidgets('AuthGate is a StatelessWidget', (WidgetTester tester) async {
+      final authGate = AuthGate();
+      expect(authGate, isA<StatelessWidget>());
+    });
+
+    testWidgets('AuthGate has correct signIn constant', (WidgetTester tester) async {
+      expect(AuthGate.signIn, equals('sign-in'));
+    });
   });
 }

@@ -4,10 +4,6 @@ import 'package:cleteci_cross_platform/services/user_service.dart';
 import '../config/firebase_test_utils.dart';
 
 void main() {
-  // Note: UserService tests are skipped due to Firebase initialization complexity
-  // These would require extensive Firebase mocking setup
-  // Integration tests should be used instead for Firebase-dependent services
-
   setUpAll(() async {
     await setupFirebaseTestMocks();
   });
