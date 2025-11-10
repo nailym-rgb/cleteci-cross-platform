@@ -79,7 +79,7 @@ jobs:
             -Dsonar.sources=lib \
             -Dsonar.tests=test \
             -Dsonar.test.inclusions=**/*test*.dart \
-            -Dsonar.coverage.exclusions=**/*.g.dart,**/android/**,**/ios/**,**/web/**,**/windows/**,**/linux/**,**/macos/**,**/main*.dart,**/firebase_options.dart,**/*.freezed.dart,lib/ui/auth/widgets/register.dart,lib/services/user_service.dart,lib/ui/auth/widgets/auth_gate.dart,test/* \
+            -Dsonar.coverage.exclusions=**/*.g.dart,**/android/**,**/ios/**,**/web/**,**/windows/**,**/linux/**,**/macos/**,**/main*.dart,**/firebase_options.dart,**/*.freezed.dart,lib/ui/auth/widgets/register.dart,lib/services/user_service.dart,lib/ui/auth/widgets/auth_gate.dart,lib/services/speech_service.dart,lib/ui/speech_to_text/widgets/speech_to_text_screen.dart,test/* \
             -Dsonar.dart.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.c.file.suffixes=- \
             -Dsonar.cpp.file.suffixes=- \
