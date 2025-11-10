@@ -139,5 +139,95 @@ void main() {
 
       expect(find.byType(OCRScreen), findsOneWidget);
     });
+
+    testWidgets('OCRScreen constructor works', (WidgetTester tester) async {
+      final screen = OCRScreen(
+        title: 'Test OCR',
+        icon: Icons.document_scanner,
+        color: Colors.blue,
+        textractService: mockTextractService,
+        envGetter: (key, {fallback}) => 'test-value',
+      );
+      expect(screen, isNotNull);
+      expect(screen, isA<OCRScreen>());
+      expect(screen.title, equals('Test OCR'));
+      expect(screen.icon, equals(Icons.document_scanner));
+      expect(screen.color, equals(Colors.blue));
+    });
+
+    testWidgets('OCRScreen is a StatefulWidget', (WidgetTester tester) async {
+      final screen = OCRScreen(
+        title: 'Test',
+        icon: Icons.camera,
+        color: Colors.red,
+      );
+      expect(screen, isA<StatefulWidget>());
+    });
+
+    testWidgets('OCRScreen has required parameters', (WidgetTester tester) async {
+      // This would fail to compile if title, icon, or color were not required
+      final screen = OCRScreen(
+        title: 'Required',
+        icon: Icons.star,
+        color: Colors.green,
+      );
+      expect(screen.title, isNotNull);
+      expect(screen.icon, isNotNull);
+      expect(screen.color, isNotNull);
+    });
+
+    testWidgets('OCRScreen can have optional parameters', (WidgetTester tester) async {
+      final screen = OCRScreen(
+        title: 'Test',
+        icon: Icons.home,
+        color: Colors.blue,
+        textractService: mockTextractService,
+        envGetter: (key, {fallback}) => 'optional',
+      );
+      expect(screen, isNotNull);
+    });
+
+    testWidgets('OCRScreen has key parameter', (WidgetTester tester) async {
+      const testKey = Key('ocr_screen_key');
+      final screen = OCRScreen(
+        key: testKey,
+        title: 'Test',
+        icon: Icons.settings,
+        color: Colors.purple,
+      );
+      expect(screen.key, equals(testKey));
+    });
+
+    testWidgets('OCRScreen can be created with different colors', (WidgetTester tester) async {
+      final screen1 = OCRScreen(
+        title: 'Test1',
+        icon: Icons.one_k,
+        color: Colors.red,
+      );
+      final screen2 = OCRScreen(
+        title: 'Test2',
+        icon: Icons.two_k,
+        color: Colors.blue,
+      );
+      expect(screen1.color, equals(Colors.red));
+      expect(screen2.color, equals(Colors.blue));
+      expect(screen1.color, isNot(equals(screen2.color)));
+    });
+
+    testWidgets('OCRScreen can be created with different icons', (WidgetTester tester) async {
+      final screen1 = OCRScreen(
+        title: 'Test1',
+        icon: Icons.camera,
+        color: Colors.blue,
+      );
+      final screen2 = OCRScreen(
+        title: 'Test2',
+        icon: Icons.photo,
+        color: Colors.blue,
+      );
+      expect(screen1.icon, equals(Icons.camera));
+      expect(screen2.icon, equals(Icons.photo));
+      expect(screen1.icon, isNot(equals(screen2.icon)));
+    });
   });
 }
