@@ -1,3 +1,5 @@
+import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/services/auth_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/forgot_password.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
@@ -13,11 +15,14 @@ import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key, required this.auth});
+  const AuthGate({super.key, this.auth});
   static const signIn = 'sign-in';
-  final FirebaseAuth auth;
+  final FirebaseAuth? auth;
 
   Widget _buildTestModeUI(BuildContext context) {
+    final authService = getIt<AuthService>();
+    final firebaseAuth = auth ?? authService.firebaseAuth;
+
     return Scaffold(
       appBar: const DefaultAppBar(title: signIn),
       body: Center(
@@ -71,7 +76,7 @@ class AuthGate extends StatelessWidget {
                     key: const Key('sign-in-button'),
                     onPressed: () async {
                       try {
-                        await auth.signInWithEmailAndPassword(
+                        await firebaseAuth.signInWithEmailAndPassword(
                           email: 'test@example.com',
                           password: 'testpassword123',
                         );
@@ -192,6 +197,9 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = getIt<AuthService>();
+    final firebaseAuth = auth ?? authService.firebaseAuth;
+
     return FutureBuilder(
       future: Firebase.apps.isEmpty ? Firebase.initializeApp() : Future.value(),
       builder: (context, snapshot) {
@@ -200,10 +208,10 @@ class AuthGate extends StatelessWidget {
         }
 
         return StreamBuilder<User?>(
-          stream: auth.authStateChanges(),
+          stream: firebaseAuth.authStateChanges(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return auth is MockFirebaseAuth ? _buildTestModeUI(context) : _buildProductionUI();
+              return firebaseAuth is MockFirebaseAuth ? _buildTestModeUI(context) : _buildProductionUI();
             }
             return const DefaultPage(title: 'Cleteci Cross Platform Homepage');
           },

@@ -1,19 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/services/auth_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/auth_gate.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
+
+// Mock class for AuthService
+class MockAuthService extends Mock implements AuthService {
+  @override
+  FirebaseAuth get firebaseAuth => MockFirebaseAuth();
+
+  @override
+  Stream<User?> get authStateChanges => Stream.value(null);
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockFirebaseAuth mockAuth;
   late MockFirebaseAuth testAuth;
+  late MockAuthService mockAuthService;
 
   setUp(() {
     mockAuth = MockFirebaseAuth();
     testAuth = MockFirebaseAuth();
+    mockAuthService = MockAuthService();
+
+    // Reset and setup service locator
+    resetServiceLocator();
+    setupServiceLocatorForTesting(
+      mockFirebaseAuth: mockAuth,
+      mockAuthService: mockAuthService,
+    );
   });
+
+  tearDown(() => resetServiceLocator());
 
   Widget createTestWidget(MockFirebaseAuth auth) {
     return MaterialApp(
@@ -21,10 +45,24 @@ void main() {
     );
   }
 
+  Widget createTestWidgetWithDI() {
+    return MaterialApp(
+      home: const AuthGate(), // Uses service locator
+    );
+  }
+
   group('AuthGate Widget Tests', () {
     testWidgets('should render without crashing', (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(createTestWidget(mockAuth));
+
+      // Assert - widget should render without crashing
+      expect(find.byType(AuthGate), findsOneWidget);
+    });
+
+    testWidgets('should render with DI without crashing', (WidgetTester tester) async {
+      // Act
+      await tester.pumpWidget(createTestWidgetWithDI());
 
       // Assert - widget should render without crashing
       expect(find.byType(AuthGate), findsOneWidget);

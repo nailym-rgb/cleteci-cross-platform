@@ -54,6 +54,7 @@ dependencies:
   speech_to_text: ^6.6.1
   permission_handler: ^11.3.1
   remove_from_coverage: ^2.0.0
+  get_it: ^9.0.5
 
 dev_dependencies:
   flutter_test:
