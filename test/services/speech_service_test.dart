@@ -38,6 +38,12 @@ void main() {
         speechService.dispose();
         expect(() => speechService.dispose(), returnsNormally);
       });
+
+      test('SpeechService constructor works', () {
+        final service = SpeechService();
+        expect(service, isNotNull);
+        expect(service, isA<SpeechService>());
+      });
     });
 
     group('isAvailable', () {
