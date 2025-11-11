@@ -8,17 +8,39 @@ frontend:
         - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
         # Añade Flutter a la PATH
         - export PATH="$PATH:$HOME/flutter/bin"
-        # Añade .env como asset en pubspec.yaml
-        #- "sed -i '/  uses-material-design: true/a\\  assets:\\n    - .env' pubspec.yaml"
         - mkdir -p assets # Asegura que la carpeta assets exista
         # Crea el archivo .env con las variables de Amplify
         - echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" > assets/env.vars
         - echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> assets/env.vars
         - echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" >> assets/env.vars
+        - |
+          if [ -n "$AZ_ACCESS_KEY" ]; then
+            echo "AZ_ACCESS_KEY=$AZ_ACCESS_KEY" >> assets/env.vars
+          else
+            echo "AZ_ACCESS_KEY=" >> assets/env.vars
+          fi
+        - |
+          if [ -n "$AZ_SECRET_KEY" ]; then
+            echo "AZ_SECRET_KEY=$AZ_SECRET_KEY" >> assets/env.vars
+          else
+            echo "AZ_SECRET_KEY=" >> assets/env.vars
+          fi
+        - |
+          if [ -n "$AZ_REGION" ]; then
+            echo "AZ_REGION=$AZ_REGION" >> assets/env.vars
+          else
+            echo "AZ_REGION=us-east-1" >> assets/env.vars
+          fi
+        # Verificar que el archivo se creó correctamente
+        - echo "Contenido del archivo env.vars:" && cat assets/env.vars
         # Verifica la instalación de Flutter
         - flutter doctor
         # Habilita el soporte para web
         - flutter config --enable-web
+        # Instalar Chrome para pruebas de integración (requerido por Flutter)
+        - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        - sudo yum install -y ./google-chrome-stable_current_x86_64.rpm --nogpgcheck
+        - rm google-chrome-stable_current_x86_64.rpm
     # 2. Fase de Compilación: Compila el proyecto
     build:
       commands:
@@ -28,7 +50,12 @@ frontend:
         - flutter pub get
         # Compila la aplicación web para producción
         - flutter build web --release --pwa-strategy none
-  # 3. Artefactos: Indica qué archivos subir al hosting
+    # 3. Fase de Pruebas de Integración: Ejecuta pruebas antes de desplegar
+    test:
+       commands:
+         # Ejecutar pruebas de integración de Flutter
+         - flutter test integration_test/
+  # 4. Artefactos: Indica qué archivos subir al hosting
   artifacts:
     # El directorio donde 'flutter build web' guarda el resultado
     baseDirectory: build/web
@@ -37,3 +64,4 @@ frontend:
   cache:
     paths:
       - $HOME/flutter
+      - node_modules

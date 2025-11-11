@@ -1,11 +1,14 @@
 import 'package:cleteci_cross_platform/ui/common/widgets/page_component.dart';
+import 'package:cleteci_cross_platform/ui/ocr/widgets/ocr.dart';
+import 'package:cleteci_cross_platform/ui/speech_to_text/widgets/speech_to_text_screen.dart';
+import 'package:cleteci_cross_platform/ui/settings/widgets/theme_settings_screen.dart';
 import 'package:flutter/material.dart';
 
-const List<Widget> pages = <Widget>[
-  PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Colors.blue),
-  PageComponent(title: 'OCR', icon: Icons.camera_alt, color: Colors.green),
-  PageComponent(title: 'Speech To Text', icon: Icons.mic, color: Colors.orange),
-  PageComponent(title: 'Settings', icon: Icons.settings, color: Colors.grey),
+List<Widget> pages = <Widget>[
+  const PageComponent(title: 'Dashboard', icon: Icons.widgets, color: Color(0xFF2196F3)),
+  OCRScreen(title: 'Textract', icon: Icons.camera_alt, color: Colors.green),
+  const SpeechToTextScreen(),
+  const ThemeSettingsScreen(),
 ];
 
 class DrawerEntryDestination {
@@ -34,7 +37,7 @@ final List<DrawerEntryDestination> appDestinations = <DrawerEntryDestination>[
   ),
   const DrawerEntryDestination(
     1,
-    'OCR',
+    'Textract',
     false,
     Icon(Icons.format_paint_outlined),
     Icon(Icons.format_paint),
@@ -43,14 +46,14 @@ final List<DrawerEntryDestination> appDestinations = <DrawerEntryDestination>[
     2,
     'Speech to Text',
     false,
-    Icon(Icons.format_paint_outlined),
-    Icon(Icons.format_paint),
+    Icon(Icons.mic_outlined),
+    Icon(Icons.mic),
   ),
   const DrawerEntryDestination(
     3,
-    'Settings',
+    'Theme Settings',
     false,
-    Icon(Icons.settings_outlined),
-    Icon(Icons.settings),
+    Icon(Icons.palette_outlined),
+    Icon(Icons.palette),
   ),
 ];

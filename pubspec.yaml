@@ -40,9 +40,21 @@ dependencies:
   google_sign_in: ^6.3.0
   firebase_ui_oauth_google: ^2.0.0
   flutter_dotenv: ^6.0.0
-  local_auth: ^2.3.0
+  local_auth: ^3.0.0
   provider: ^6.1.5+1
   flutter_svg: ^2.2.1
+  firebase_auth_mocks: ^0.15.1
+  image_picker: ^1.0.7
+  aws_textract_api: ^2.0.0
+  aws_common: ^0.7.11
+  aws_signature_v4: ^0.6.9
+  http: ^1.2.0
+  cloud_firestore: ^6.0.3
+  shared_preferences: ^2.3.2
+  speech_to_text: ^6.6.1
+  permission_handler: ^11.3.1
+  remove_from_coverage: ^2.0.0
+  get_it: ^9.0.5
 
 dev_dependencies:
   flutter_test:
@@ -53,20 +65,44 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   mockito: ^5.5.1
   build_runner: ^2.9.0
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+dependency_overrides:
+  # The AWS packages (via shared_aws_api) require intl ^0.19.0
+  # firebase_ui_auth 2.x+ requires intl ^0.20.0
+  # This override forces the version compatible with the AWS packages.
+  intl: ^0.19.0
+
+  # build_runner requires a newer version of built_value than aws_common allows.
+  # This override forces a version compatible with build_runner.
+  built_value: ^8.10.1
 
 scripts:
- test: flutter test
- test:coverage: flutter test --coverage
- coverage: genhtml coverage/lcov.info -o coverage/html
+  test: flutter test
+  test:coverage: flutter test --coverage
+  coverage: genhtml coverage/lcov.info -o coverage/html
+  build:web: flutter build web --release --pwa-strategy none
+  serve:web: flutter pub global activate dhttpd && flutter pub global run dhttpd --path build/web --port 8080
+  test:e2e: npm run test:e2e
+  test:e2e:setup: flutter pub get && npm install && flutter build web --release --pwa-strategy none --target lib/main_test.dart
+  test:integration:android: flutter drive --driver=test_driver/main_test.dart --target=integration_test/auth_flow_test.dart -d android
+  install:node: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  fonts:
+    - family: SocialIcons
+      fonts:
+        - asset: packages/firebase_ui_auth/fonts/SocialIcons.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

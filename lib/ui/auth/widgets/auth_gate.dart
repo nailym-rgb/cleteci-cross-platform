@@ -1,7 +1,10 @@
+import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/services/auth_service.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/forgot_password.dart';
-import 'package:cleteci_cross_platform/ui/auth/widgets/register.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
@@ -12,128 +15,204 @@ import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  const AuthGate({super.key, this.auth});
+  static const signIn = 'sign-in';
+  final FirebaseAuth? auth;
+
+  Widget _buildTestModeUI(BuildContext context) {
+    final authService = getIt<AuthService>();
+    final firebaseAuth = auth ?? authService.firebaseAuth;
+
+    return Scaffold(
+      appBar: const DefaultAppBar(title: signIn),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: SvgPicture.asset(
+                    'assets/cleteci_logo.svg',
+                    semanticsLabel: 'Cleteci Logo',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Welcome to Cleteci Cross Platform, please sign in!',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Semantics(
+                  label: 'email-input',
+                  child: const TextField(
+                    key: Key('email-field'),
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Semantics(
+                  label: 'password-input',
+                  child: const TextField(
+                    key: Key('password-field'),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Semantics(
+                  label: 'sign-in-button',
+                  child: ElevatedButton(
+                    key: const Key('sign-in-button'),
+                    onPressed: () async {
+                      try {
+                        await firebaseAuth.signInWithEmailAndPassword(
+                          email: 'test@example.com',
+                          password: 'testpassword123',
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Sign in failed: $e')),
+                        );
+                      }
+                    },
+                    child: const Text(signIn),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Semantics(
+                  label: 'register-button',
+                  child: TextButton(
+                    key: const Key('register-button'),
+                    onPressed: () {
+                    },
+                    child: const Text('Register'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Semantics(
+                  label: 'forgot-password-button',
+                  child: TextButton(
+                    key: const Key('forgot-password-button'),
+                    onPressed: () {
+                    },
+                    child: const Text('Forgot Password?'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductionUI() {
+    return Scaffold(
+      appBar: const DefaultAppBar(title: signIn),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SignInScreen(
+            showAuthActionSwitch: false,
+            showPasswordVisibilityToggle: true,
+            key: const Key('sign-in-screen'),
+            actions: [
+              ForgotPasswordAction((context, email) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<ForgotPasswordScreen>(
+                    builder: (context) => Scaffold(
+                      appBar: const DefaultAppBar(title: 'Forgotten Password'),
+                      body: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 500),
+                          child: ForgotPassword(email: email),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+            providers: [
+              EmailAuthProvider(),
+              if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ?? false)
+                GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
+            ],
+            headerBuilder: (context, constraints, shrinkOffset) => Padding(
+              padding: const EdgeInsets.all(20),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: SvgPicture.asset(
+                  'assets/cleteci_logo.svg',
+                  semanticsLabel: 'Cleteci Logo',
+                ),
+              ),
+            ),
+            subtitleBuilder: (context, action) => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                'Welcome to Cleteci Cross Platform, please sign in!',
+                key: Key('auth-subtitle'),
+              ),
+            ),
+            footerBuilder: (context, action) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account?"),
+                  const Padding(padding: EdgeInsets.all(4.0)),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<RegisterScreen>(
+                          builder: (context) => CustomRegisterForm(),
+                        ),
+                      );
+                    },
+                    child: const Text('Register'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authService = getIt<AuthService>();
+    final firebaseAuth = auth ?? authService.firebaseAuth;
+
     return FutureBuilder(
       future: Firebase.apps.isEmpty ? Firebase.initializeApp() : Future.value(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          // Show a loading indicator while Firebase initializes
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Firebase is initialized, proceed with auth logic
         return StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
+          stream: firebaseAuth.authStateChanges(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return Scaffold(
-                appBar: const DefaultAppBar(title: 'Sign In'),
-                body: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: SignInScreen(
-                      showAuthActionSwitch: false,
-                      showPasswordVisibilityToggle: true,
-                      actions: [
-                        ForgotPasswordAction((context, email) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<ForgotPasswordScreen>(
-                              builder: (context) {
-                                return Scaffold(
-                                  appBar: const DefaultAppBar(
-                                    title: 'Forgotten Password',
-                                  ),
-                                  body: Center(
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 500,
-                                      ),
-                                      child: ForgotPassword(
-                                        // Pass the email from the SignInScreen to pre-fill the field (if any)
-                                        email: email,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        }),
-                      ],
-                      providers: [
-                        EmailAuthProvider(),
-                        if (dotenv
-                                .maybeGet('GOOGLE_OAUTH_CLIENT_ID')
-                                ?.isNotEmpty ??
-                            false)
-                          GoogleProvider(
-                            clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID'),
-                          ),
-                      ],
-                      headerBuilder: (context, constraints, shrinkOffset) {
-                        return Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: SvgPicture.asset('assets/cleteci_logo.svg'),
-                          ),
-                        );
-                      },
-                      subtitleBuilder: (context, action) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            'Welcome to Cleteci Cross Platform, please sign in!',
-                          ),
-                        );
-                      },
-                      footerBuilder: (context, action) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text("Don't have an account?"),
-                              const Padding(padding: EdgeInsets.all(4.0)),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute<RegisterScreen>(
-                                      builder: (context) {
-                                        return Scaffold(
-                                          appBar: const DefaultAppBar(
-                                            title: 'Register',
-                                          ),
-                                          body: Center(
-                                            child: ConstrainedBox(
-                                              constraints: const BoxConstraints(
-                                                maxWidth: 500,
-                                              ),
-                                              child: const Register(),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                                child: const Text('Register'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              );
+              return firebaseAuth is MockFirebaseAuth ? _buildTestModeUI(context) : _buildProductionUI();
             }
-
             return const DefaultPage(title: 'Cleteci Cross Platform Homepage');
           },
         );

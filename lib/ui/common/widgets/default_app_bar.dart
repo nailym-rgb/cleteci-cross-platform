@@ -1,9 +1,10 @@
+import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/services/auth_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
+import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
   const DefaultAppBar({super.key, required this.title});
@@ -18,88 +19,83 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _DefaultAppBarState extends State<DefaultAppBar> {
-  @override
-  Widget build(BuildContext context) {
-    final appState = Provider.of<LocalAuthState>(context);
-
-    Future<dynamic> futureBuilder = Firebase.apps.isEmpty
-        ? Firebase.initializeApp()
-        : Future.value();
-
-    void handleOnPressedProfile() async {
-      if (appState.supportState == LocalAuthSupportState.supported) {
-        await appState.authenticateWithBiometrics();
-      }
-
-      if (!context.mounted) return;
-
-      // Since we're not handling sensitive data, we just navigate to
-      // the profile screen if the device does not support biometric
-      // authentication.
-      if (appState.authorized == LocalAuthStateValue.authorized ||
-          appState.supportState == LocalAuthSupportState.unsupported) {
-        Navigator.push(
-          context,
-          MaterialPageRoute<ProfileScreen>(
-            builder: (context) => ProfileScreen(
-              appBar: AppBar(title: const Text('User Profile')),
-              actions: [
-                SignedOutAction((context) {
-                  Navigator.of(context).pop();
-                }),
-              ],
-              children: const [Divider()],
-            ),
-          ),
-        );
-      }
+  Future<bool> _handleOnPressedProfile(LocalAuthState appState) async {
+    if (appState.supportState == LocalAuthSupportState.supported) {
+      await appState.authenticateWithBiometrics();
     }
 
-    return FutureBuilder(
-      future: futureBuilder,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          // Show a loading indicator while Firebase initializes
-          return const Center(child: CircularProgressIndicator());
-        }
+    // Since we're not handling sensitive data, we just navigate to
+    // the profile screen if the device does not support biometric
+    // authentication.
+    return appState.authorized == LocalAuthStateValue.authorized ||
+        appState.supportState == LocalAuthSupportState.unsupported;
+  }
 
-        // Firebase is initialized, proceed with auth logic
-        return StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            bool isLoggedIn = snapshot.hasData;
+  Widget _buildLoggedOutAppBar(ThemeData appTheme) {
+    return AppBar(
+      backgroundColor: appTheme.colorScheme.primary,
+      title: Text(
+        widget.title,
+        key: const Key('app-bar-title'),
+        textAlign: TextAlign.left,
+      ),
+    );
+  }
 
-            if (!isLoggedIn) {
-              return AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
-              );
+
+  Widget _buildStreamBuilder(BuildContext context, AsyncSnapshot<User?> snapshot) {
+    final ThemeData appTheme = Theme.of(context);
+    final appState = getIt<LocalAuthState>();
+    bool isLoggedIn = snapshot.hasData;
+
+    if (!isLoggedIn) {
+      return _buildLoggedOutAppBar(appTheme);
+    }
+
+    return AppBar(
+      backgroundColor: appTheme.colorScheme.primary,
+      title: Text(widget.title, textAlign: TextAlign.left),
+      leading: Builder(
+        builder: (context) {
+          return IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          );
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: () async {
+            if (mounted) {
+              final shouldNavigate = await _handleOnPressedProfile(appState);
+              if (shouldNavigate && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<ProfileScreen>(
+                    builder: (context) => CustomUserProfileScreen(),
+                  ),
+                );
+              }
             }
-
-            return AppBar(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: Text(widget.title),
-              leading: Builder(
-                builder: (context) {
-                  return IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                  );
-                },
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.person),
-                  onPressed: handleOnPressedProfile,
-                ),
-              ],
-              automaticallyImplyLeading: false,
-            );
           },
-        );
-      },
+        ),
+      ],
+      automaticallyImplyLeading: false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get LocalAuthState from service locator instead of Provider
+
+    // Firebase is initialized, proceed with auth logic
+    final authService = getIt<AuthService>();
+    return StreamBuilder<User?>(
+      stream: authService.authStateChanges,
+      builder: _buildStreamBuilder,
     );
   }
 }
