@@ -107,6 +107,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
   }
 
   void _onSpeechResult(String result) {
+    print('UI: Speech result received: $result');
     if (mounted) {
       setState(() {
         _textController.text = result;

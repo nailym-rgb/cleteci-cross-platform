@@ -60,16 +60,20 @@ class SpeechService {
 
     await _speechToText.listen(
       onResult: (result) {
+        print('Speech result: ${result.recognizedWords}');
         onResult(result.recognizedWords);
       },
-      onSoundLevelChange: onSoundLevelChange,
+      onSoundLevelChange: (level) {
+        print('Sound level: $level');
+        onSoundLevelChange(level);
+      },
       listenFor: listenFor != null ? Duration(seconds: listenFor) : null,
       pauseFor: pauseFor != null ? Duration(seconds: pauseFor) : null,
       localeId: localeId,
       listenOptions: stt.SpeechListenOptions(
         cancelOnError: true,
         partialResults: true,
-        onDevice: true,
+        onDevice: false, // Changed to false for Android compatibility
       ),
     );
 
