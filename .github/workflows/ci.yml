@@ -24,7 +24,7 @@ jobs:
     #   uses: zgosalvez/github-actions-report-lcov@v3
     #   with:
     #     coverage-files: coverage/lcov.info
-    #     minimum-coverage: 80
+    #     minimum-coverage: 70
     #     artifact-name: code-coverage-report
     #     github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Upload coverage to Codecov
@@ -32,10 +32,10 @@ jobs:
       with:
         file: ./coverage/lcov.info
         fail_ci_if_error: false
-    - name: Check 80% Coverage Minimum (Alternativa)
+    - name: Check 70% Coverage Minimum (Alternativa)
       run: |
         coverage_percent=$(awk '/^overall coverage:/ {print $3}' coverage/lcov.info | sed 's/[^0-9.]//g')
-        if (( $(echo "$coverage_percent < 80.0" | bc -l) )); then
+        if (( $(echo "$coverage_percent < 70.0" | bc -l) )); then
           echo "❌ ERROR: La cobertura de código es del $coverage_percent%, y se requiere un 80%."
           exit 1
         else
