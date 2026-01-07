@@ -55,6 +55,7 @@ dependencies:
   permission_handler: ^11.3.1
   remove_from_coverage: ^2.0.0
   get_it: ^9.0.5
+  email_validator: ^2.1.17
 
 dev_dependencies:
   flutter_test:

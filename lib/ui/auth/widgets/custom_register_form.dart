@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/user_service.dart';
+import 'package:email_validator/email_validator.dart';
 
 /// Formulario personalizado de registro que incluye campos adicionales
 class CustomRegisterForm extends StatefulWidget {
@@ -32,8 +33,6 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
-
-  static const Pattern _emailRegex = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
 
   @override
   void dispose() {
@@ -261,7 +260,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingresa tu correo electrónico';
     }
-    if (!(_emailRegex as RegExp).hasMatch(value)) {
+    if (!EmailValidator.validate(value)) {
       return 'Por favor ingresa un correo electrónico válido';
     }
     return null;
