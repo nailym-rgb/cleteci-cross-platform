@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/user_service.dart';
+import 'package:email_validator/email_validator.dart';
 
 /// Formulario personalizado de registro que incluye campos adicionales
 class CustomRegisterForm extends StatefulWidget {
   CustomRegisterForm({super.key, UserService? userService, FirebaseAuth? auth})
-      : _userService = userService ?? UserService(),
-        _auth = auth ?? FirebaseAuth.instance;
+    : _userService = userService ?? UserService(),
+      _auth = auth ?? FirebaseAuth.instance;
 
   final UserService _userService;
   final FirebaseAuth _auth;
@@ -32,8 +33,6 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
-
-  static final RegExp _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
   @override
   void dispose() {
@@ -123,9 +122,9 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error en el registro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error en el registro: $e')));
       }
     } finally {
       if (mounted) {
@@ -261,7 +260,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingresa tu correo electrónico';
     }
-    if (!_emailRegex.hasMatch(value)) {
+    if (!EmailValidator.validate(value)) {
       return 'Por favor ingresa un correo electrónico válido';
     }
     return null;
@@ -289,13 +288,17 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+                crossAxisAlignment: isWeb
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton.icon(
                     onPressed: _isLoading ? null : _register,
                     icon: const Icon(Icons.person_add),
                     label: _isLoading
-                        ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
+                        ? CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          )
                         : const Text('Registrarse'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -356,19 +359,13 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 32,
-            child: Icon(icon, size: 24),
-          ),
+          SizedBox(width: 32, child: Icon(icon, size: 24)),
           const SizedBox(width: 12),
           SizedBox(
             width: 140,
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 16),
@@ -380,7 +377,10 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
               decoration: InputDecoration(
                 hintText: hintText,
                 border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               validator: validator,
             ),
