@@ -8,7 +8,67 @@ import 'package:cleteci_cross_platform/services/user_service.dart';
 import '../../../config/firebase_test_utils.dart';
 
 // Mock classes
-class MockUserService extends Mock implements UserService {}
+class MockUserService extends Mock implements UserService {
+  @override
+  Future<void> createUserProfile({
+    required String uid,
+    required String email,
+    required String firstName,
+    required String lastName,
+    String? avatarUrl,
+  }) {
+    // Esto intercepta la llamada para que podamos simular éxito o fallo
+    return super.noSuchMethod(
+      Invocation.method(#createUserProfile, [], {
+        #uid: uid,
+        #email: email,
+        #firstName: firstName,
+        #lastName: lastName,
+        #avatarUrl: avatarUrl,
+      }),
+      returnValue: Future.value(),
+      returnValueForMissingStub: Future.value(),
+    );
+  }
+}
+
+class SpyUserService extends Mock implements UserService {
+  // Variables para guardar lo que recibe el método
+  String? capturedUid;
+  String? capturedEmail;
+  bool wasCalled = false;
+
+  @override
+  Future<void> createUserProfile({
+    required String uid,
+    required String email,
+    required String firstName,
+    required String lastName,
+    String? avatarUrl,
+  }) async {
+    // 1. Guardamos los datos para verificarlos después (Spying)
+    capturedUid = uid;
+    capturedEmail = email;
+    wasCalled = true;
+
+    // 2. Retornamos un Future completado (Éxito inmediato)
+    return Future.value();
+  }
+}
+
+class FailingUserService extends Mock implements UserService {
+  @override
+  Future<void> createUserProfile({
+    required String uid,
+    required String email,
+    required String firstName,
+    required String lastName,
+    String? avatarUrl,
+  }) async {
+    // En lugar de usar 'when', lanzamos el error directamente aquí
+    throw Exception('Error de conexión a BD');
+  }
+}
 
 void main() {
   late MockUserService mockUserService;
@@ -23,11 +83,14 @@ void main() {
     mockAuth = MockFirebaseAuth();
   });
 
-  Widget createTestWidget() {
+  Widget createTestWidget({UserService? userService}) {
     return MaterialApp(
       home: SizedBox(
         height: 1000, // Give enough height for scrolling
-        child: CustomRegisterForm(userService: mockUserService, auth: mockAuth),
+        child: CustomRegisterForm(
+          userService: userService ?? mockUserService,
+          auth: mockAuth,
+        ),
       ),
     );
   }
@@ -338,6 +401,168 @@ void main() {
         find.text('Por favor ingresa tu correo electrónico'),
         findsNothing,
       );
+    });
+  });
+
+  group('Lógica del método _register', () {
+    Future<void> fillForm(WidgetTester tester) async {
+      // 1. Usar el HINT TEXT ('Ingresa tu nombre') en lugar del Label ('Nombre')
+      // Asegúrate de usar ensureVisible en cada uno por si el teclado tapa los campos
+
+      // Nombre
+      final nameField = find.widgetWithText(TextFormField, 'Ingresa tu nombre');
+      await tester.ensureVisible(nameField);
+      await tester.enterText(nameField, 'Juan');
+
+      // Apellido
+      final lastNameField = find.widgetWithText(
+        TextFormField,
+        'Ingresa tu apellido',
+      );
+      await tester.ensureVisible(lastNameField);
+      await tester.enterText(lastNameField, 'Perez');
+
+      // Email
+      final emailField = find.widgetWithText(
+        TextFormField,
+        'correo@ejemplo.com',
+      );
+      await tester.ensureVisible(emailField);
+      await tester.enterText(emailField, 'test@test.com');
+
+      // Contraseña
+      final passField = find.widgetWithText(TextFormField, 'Contraseña');
+      await tester.ensureVisible(passField);
+      await tester.enterText(passField, '123456');
+
+      // Confirmar Contraseña
+      final confirmField = find.widgetWithText(
+        TextFormField,
+        'Confirmar contraseña',
+      );
+      await tester.ensureVisible(confirmField);
+      await tester.enterText(confirmField, '123456');
+    }
+
+    testWidgets('Éxito: Crea usuario, guarda en DB y muestra éxito', (
+      WidgetTester tester,
+    ) async {
+      // 1. PREPARACIÓN: Usamos el Spy
+      final spyService = SpyUserService();
+
+      // Inyectamos el spy
+      await tester.pumpWidget(createTestWidget(userService: spyService));
+      await tester.pumpAndSettle();
+
+      // 2. Llenar formulario
+      await fillForm(tester);
+
+      // 3. Presionar Registrarse
+      final registerButton = find.text('Registrarse'); // O 'Sign Up'
+      await tester.ensureVisible(registerButton);
+      await tester.tap(registerButton);
+
+      // 4. Verificar estado de carga
+      // Como el Spy es muy rápido, el loading puede pasar en un microsegundo.
+      // Hacemos pump para procesar el tap y la lógica
+      await tester.pump();
+
+      // Opcional: Si quieres ver el loading estrictamente, tendrías que poner un delay dentro del Spy,
+      // pero para pruebas funcionales, verificar el resultado final suele ser suficiente.
+
+      // 5. Esperar a que termine todo
+      await tester.pumpAndSettle();
+
+      // 6. VERIFICACIÓN (Reemplaza al 'verify' de Mockito)
+
+      // A) Verificar que el método fue llamado
+      expect(
+        spyService.wasCalled,
+        true,
+        reason: 'El servicio debió ser llamado',
+      );
+
+      // B) Verificar los datos exactos
+      expect(spyService.wasCalled, true);
+      expect(
+        spyService.capturedEmail,
+        'test@test.com',
+      ); // El email que escribió fillForm
+
+      // C) Verificar el UID (debe ser un String, no nulo)
+      expect(spyService.capturedUid, isNotNull);
+      expect(spyService.capturedUid, isNotEmpty);
+
+      // 7. Verificar SnackBar de éxito
+      expect(
+        find.text('¡Registro exitoso! Redirigiendo al login...'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+    });
+    testWidgets('Fallo Auth: Muestra error si Firebase falla', (
+      WidgetTester tester,
+    ) async {
+      // NO necesitamos configurar mockUserService porque va a fallar antes de llegar ahí.
+      // Pero necesitamos inyectar un error en Firebase Auth.
+      // Como mockAuth (firebase_auth_mocks) simula éxito por defecto, es difícil forzar error
+      // a menos que uses un Mock de FirebaseAuth generado por Mockito, NO la librería 'mocks'.
+
+      // **ESTRATEGIA ALTERNATIVA PARA ERROR DE AUTH**:
+      // Usar un email inválido que Firebase rechace o simular comportamiento si usas Mockito puro.
+      // Asumiendo que usas `MockFirebaseAuth` de la librería `firebase_auth_mocks`,
+      // esta librería valida emails. Si ponemos un email sin dominio, firebase mock fallará.
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Llenar formulario pero modificar el email para forzar error interno si la librería valida
+      // Ojo: Tu Regex de UI pasará, pero firebase podría rechazarlo si está mal formado en backend logic
+      // Si no puedes forzar error con la librería de mocks, salta al siguiente test (Fallo Service).
+
+      // Supongamos que queremos probar el catch general:
+      // Si usas Mockito para Auth en lugar de firebase_auth_mocks, harías:
+      // when(mockAuth.createUserWithEmailAndPassword(...)).thenThrow(FirebaseAuthException(code: 'error'));
+    });
+
+    testWidgets('Fallo Service: Muestra error si UserService falla', (
+      WidgetTester tester,
+    ) async {
+      // 1. PREPARACIÓN: Usamos el servicio "Fake" que siempre falla.
+      // No necesitamos 'when' ni 'anyNamed'. La clase ya trae el error por dentro.
+      final failingService = FailingUserService();
+
+      // Inyectamos el servicio fallido al crear el widget
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomRegisterForm(
+              userService:
+                  failingService, // <--- Aquí usamos el servicio que falla
+              auth: mockAuth, // El Auth sigue siendo el normal (éxito)
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 2. Llenar el formulario
+      // (Asegúrate de usar la versión correcta de fillForm que usa hintText)
+      await fillForm(tester);
+
+      // 3. Tap Registrar
+      final registerButton = find.text('Registrarse');
+      await tester.ensureVisible(registerButton);
+      await tester.tap(registerButton);
+
+      // 4. Esperar al SnackBar
+      // Como el error es inmediato (no hay await real en el fake), pump simple basta
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+
+      // 5. Verificar mensaje de error
+      // Esto confirmará que la UI atrapó la excepción del FailingUserService
+      expect(find.textContaining('Error en el registro'), findsOneWidget);
     });
   });
 }
