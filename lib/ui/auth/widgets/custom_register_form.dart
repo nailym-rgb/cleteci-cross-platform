@@ -33,6 +33,8 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
   XFile? _selectedAvatar;
   bool _isLoading = false;
 
+  static final RegExp _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -259,7 +261,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingresa tu correo electrónico';
     }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+    if (!_emailRegex.hasMatch(value)) {
       return 'Por favor ingresa un correo electrónico válido';
     }
     return null;
