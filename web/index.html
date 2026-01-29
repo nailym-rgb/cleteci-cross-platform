@@ -31,6 +31,181 @@
 
   <title>cleteci_cross_platform</title>
   <link rel="manifest" href="manifest.json">
+  <!-- PDF.js for web PDF rendering (used only on web) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.min.js"></script>
+  <!-- Tesseract.js for client-side OCR (browser) -->
+  <script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+  <script>
+    // Expose a helper to render PDF pages to data URLs (PNG)
+    // Usage: window.renderPdfPages(base64Pdf) -> Promise<Array<dataUrlStrings>>
+    window.renderPdfPages = async function(base64Pdf) {
+      try {
+        const pdfData = atob(base64Pdf);
+        const len = pdfData.length;
+        const uint8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          uint8[i] = pdfData.charCodeAt(i);
+        }
+
+        const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+        const pdf = await loadingTask.promise;
+        const pages = [];
+        // simple heuristic to limit resolution for performance
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const viewport = page.getViewport({ scale: 1.0 });
+
+          // scale down if very large to keep memory usage reasonable
+          const maxWidth = 1200;
+          let scale = 1.0;
+          if (viewport.width > maxWidth) {
+            scale = maxWidth / viewport.width;
+          }
+          const scaledViewport = page.getViewport({ scale: scale });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.floor(scaledViewport.width);
+          canvas.height = Math.floor(scaledViewport.height);
+          const ctx = canvas.getContext('2d');
+
+          await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+          const dataUrl = canvas.toDataURL('image/png');
+          pages.push(dataUrl);
+          // cleanup
+          try { page.cleanup && page.cleanup(); } catch (_) {}
+        }
+        try { pdf.destroy && pdf.destroy(); } catch (_) {}
+        return pages;
+      } catch (err) {
+        return Promise.reject(err.toString ? err.toString() : err);
+      }
+    }
+  </script>
+  <script>
+    // Expose a helper to OCR PDF pages using pdf.js + tesseract.js
+    // Usage: window.ocrPdfPages(base64Pdf, maxPages) -> Promise<Array<textStrings>>
+    // Lazy singleton Tesseract worker and helpers
+    window._getTesseractWorker = async function(lang = 'spa') {
+      if (!window._tesseractWorker) {
+        window._tesseractWorker = Tesseract.createWorker({
+          logger: m => { /* silent logger */ }
+        });
+        await window._tesseractWorker.load();
+        await window._tesseractWorker.loadLanguage(lang);
+        await window._tesseractWorker.initialize(lang);
+        // Set PSM to 3 (fully automatic) by default
+        try { await window._tesseractWorker.setParameters({ tessedit_pageseg_mode: '3' }); } catch (_) {}
+      }
+      return window._tesseractWorker;
+    };
+
+    // Simple canvas preprocessing: scale, grayscale and Otsu-like threshold
+    window._preprocessCanvas = function(canvas, maxWidth) {
+      const w = canvas.width;
+      const h = canvas.height;
+      let scale = 1.0;
+      if (w > maxWidth) scale = maxWidth / w;
+      const outW = Math.floor(w * scale);
+      const outH = Math.floor(h * scale);
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width = outW;
+      outCanvas.height = outH;
+      const ctx = outCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, 0, outW, outH);
+      const imgData = ctx.getImageData(0, 0, outW, outH);
+      // convert to grayscale
+      let sum = 0;
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        const r = imgData.data[i];
+        const g = imgData.data[i+1];
+        const b = imgData.data[i+2];
+        const gray = (0.299*r + 0.587*g + 0.114*b)|0;
+        imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = gray;
+        sum += gray;
+      }
+      // simple threshold using average
+      const avg = sum / (outW * outH);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        const gray = imgData.data[i];
+        const v = gray > avg ? 255 : 0;
+        imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = v;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      return outCanvas;
+    };
+
+    window.ocrPdfPages = async function(base64Pdf, maxPages) {
+      try {
+        const pdfData = atob(base64Pdf);
+        const len = pdfData.length;
+        const uint8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          uint8[i] = pdfData.charCodeAt(i);
+        }
+
+        const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+        const pdf = await loadingTask.promise;
+        const results = [];
+        const pageCount = Math.min(pdf.numPages, maxPages || pdf.numPages);
+
+          for (let p = 1; p <= pageCount; p++) {
+            const page = await pdf.getPage(p);
+            const viewport = page.getViewport({ scale: 1.0 });
+
+            const maxWidth = 1600;
+            let scale = 1.0;
+            if (viewport.width > maxWidth) {
+              scale = maxWidth / viewport.width;
+            }
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.floor(scaledViewport.width);
+            canvas.height = Math.floor(scaledViewport.height);
+            const ctx = canvas.getContext('2d');
+
+            await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+
+            // Preprocess and OCR with worker
+            const preprocessCanvas = window._preprocessCanvas(canvas, 1600);
+            const worker = await window._getTesseractWorker('spa');
+            const { data: { text } } = await worker.recognize(preprocessCanvas);
+            results.push(text || '');
+
+            try { page.cleanup && page.cleanup(); } catch (_) {}
+          }
+        try { pdf.destroy && pdf.destroy(); } catch (_) {}
+        return results;
+      } catch (err) {
+        return Promise.reject(err.toString ? err.toString() : err);
+      }
+    }
+  </script>
+  <script>
+    // OCR a single data URL using Tesseract.js
+    // Usage: window.ocrDataUrl(dataUrl) -> Promise<string>
+    window.ocrDataUrl = async function(dataUrl) {
+      try {
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const { data: { text } } = await Tesseract.recognize(canvas, 'spa');
+        return text || '';
+      } catch (err) {
+        return Promise.reject(err.toString ? err.toString() : err);
+      }
+    }
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
