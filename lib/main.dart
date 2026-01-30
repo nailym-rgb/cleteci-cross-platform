@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'config/firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cleteci_cross_platform/config/service_locator.dart';
 
 import 'app.dart';
 
@@ -19,11 +20,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  setupServiceLocator();
+
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => LocalAuthState()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => LocalAuthState())],
       child: MyApp(auth: FirebaseAuth.instance),
     ),
   );
