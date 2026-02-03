@@ -26,18 +26,21 @@ class AuthGate extends StatelessWidget {
     return Scaffold(
       appBar: const DefaultAppBar(title: signIn),
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: SvgPicture.asset(
-                    'assets/cleteci_logo.svg',
-                    semanticsLabel: 'Cleteci Logo',
+                SizedBox(
+                  height: 150, // Limitamos la altura del logo a 150px
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: SvgPicture.asset(
+                      'assets/cleteci_logo.svg',
+                      semanticsLabel: 'Cleteci Logo',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -95,8 +98,7 @@ class AuthGate extends StatelessWidget {
                   label: 'register-button',
                   child: TextButton(
                     key: const Key('register-button'),
-                    onPressed: () {
-                    },
+                    onPressed: () {},
                     child: const Text('Register'),
                   ),
                 ),
@@ -105,8 +107,7 @@ class AuthGate extends StatelessWidget {
                   label: 'forgot-password-button',
                   child: TextButton(
                     key: const Key('forgot-password-button'),
-                    onPressed: () {
-                    },
+                    onPressed: () {},
                     child: const Text('Forgot Password?'),
                   ),
                 ),
@@ -148,7 +149,8 @@ class AuthGate extends StatelessWidget {
             ],
             providers: [
               EmailAuthProvider(),
-              if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ?? false)
+              if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ??
+                  false)
                 GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
             ],
             headerBuilder: (context, constraints, shrinkOffset) => Padding(
@@ -211,7 +213,9 @@ class AuthGate extends StatelessWidget {
           stream: firebaseAuth.authStateChanges(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return firebaseAuth is MockFirebaseAuth ? _buildTestModeUI(context) : _buildProductionUI();
+              return firebaseAuth is MockFirebaseAuth
+                  ? _buildTestModeUI(context)
+                  : _buildProductionUI();
             }
             return const DefaultPage(title: 'Cleteci Cross Platform Homepage');
           },

@@ -90,7 +90,16 @@ class LocalAuthState extends ChangeNotifier {
           ? LocalAuthStateValue.authorized
           : LocalAuthStateValue.unauthorized;
       notifyListeners();
-    } on PlatformException catch (_) {
+    } on LocalAuthException catch (e) {
+      debugPrint(e.toString());
+      debugPrint(
+        'Error - ${e.code.name}${e.description != null ? ': ${e.description}' : ''}',
+      );
+      isAuthenticating = false;
+      _authorized = LocalAuthStateValue.error;
+      notifyListeners();
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
       isAuthenticating = false;
       _authorized = LocalAuthStateValue.error;
       notifyListeners();
