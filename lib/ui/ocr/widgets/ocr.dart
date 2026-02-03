@@ -3,14 +3,14 @@ import 'package:cleteci_cross_platform/ui/ocr/view_model/ocr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../pdf_renderer.dart';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:pdf_render/pdf_render.dart';
+import 'package:pdf_render_plus/pdf_render.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OCRScreen extends StatefulWidget {
@@ -24,8 +24,8 @@ class OCRScreen extends StatefulWidget {
     ImagePicker? imagePicker,
     String Function(String, {String? fallback})? envGetter,
   }) : _textractService = textractService,
-        _imagePicker = imagePicker,
-        _envGetter = envGetter ?? _safeEnvGetter;
+       _imagePicker = imagePicker,
+       _envGetter = envGetter ?? _safeEnvGetter;
 
   final String title;
   final IconData icon;
@@ -73,7 +73,10 @@ class OCRScreenState extends State<OCRScreen> {
   }
 
   TextractService _createTextractService() {
-    final credentials = AwsClientCredentials(accessKey: accessKey, secretKey: secretKey);
+    final credentials = AwsClientCredentials(
+      accessKey: accessKey,
+      secretKey: secretKey,
+    );
     final service = Textract(region: awsRegion, credentials: credentials);
     return TextractService(service);
   }
@@ -148,14 +151,16 @@ class OCRScreenState extends State<OCRScreen> {
 
       if (bytes == null) {
         _debugLog('No bytes available from picked file');
-        _showErrorSnackbar('No se pudieron leer los bytes del archivo seleccionado.');
+        _showErrorSnackbar(
+          'No se pudieron leer los bytes del archivo seleccionado.',
+        );
         return;
       }
 
       final ext = name.split('.').last.toLowerCase();
 
       setState(() {
-        _pickedPdfBytes = null; 
+        _pickedPdfBytes = null;
         _pdfPreviewBytes = null;
         _pickedPdfName = null;
         _pickedImage = null;
@@ -188,7 +193,9 @@ class OCRScreenState extends State<OCRScreen> {
             _webPdfPagesCache[name] = pages;
           } catch (e, st) {
             _debugLog('PDF web render error', e, st);
-            _showErrorSnackbar('No se pudo generar vista previa del PDF en web: $e');
+            _showErrorSnackbar(
+              'No se pudo generar vista previa del PDF en web: $e',
+            );
           }
         } else {
           try {
@@ -210,7 +217,9 @@ class OCRScreenState extends State<OCRScreen> {
             if (previewBytes == null) {
               try {
                 final ui.Image img = pageImage.image as ui.Image;
-                final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+                final byteData = await img.toByteData(
+                  format: ui.ImageByteFormat.png,
+                );
                 previewBytes = byteData?.buffer.asUint8List();
               } catch (_) {}
             }
@@ -255,7 +264,9 @@ class OCRScreenState extends State<OCRScreen> {
   }
 
   Future<void> _processImage() async {
-    if (_pickedImage == null && _pickedImageBytes == null && _pickedPdfBytes == null) {
+    if (_pickedImage == null &&
+        _pickedImageBytes == null &&
+        _pickedPdfBytes == null) {
       _showErrorSnackbar('Please select an image or PDF first.');
       return;
     }
@@ -273,7 +284,9 @@ class OCRScreenState extends State<OCRScreen> {
           final pages = _webPdfPagesCache[_pickedPdfName];
           if (pages == null || pages.isEmpty) {
             _debugLog('No cached web-rendered pages for $_pickedPdfName');
-            _showErrorSnackbar('PDF no renderizado previamente en web. Selecciona el archivo de nuevo.');
+            _showErrorSnackbar(
+              'PDF no renderizado previamente en web. Selecciona el archivo de nuevo.',
+            );
             setState(() {
               _isLoading = false;
             });
@@ -282,8 +295,12 @@ class OCRScreenState extends State<OCRScreen> {
 
           // Use client-side OCR (Tesseract.js) on web when no backend is available.
           const int maxPages = 5;
-          final int pagesToProcess = pages.length > maxPages ? maxPages : pages.length;
-          _debugLog('Processing $pagesToProcess web pages with Tesseract (max $maxPages)');
+          final int pagesToProcess = pages.length > maxPages
+              ? maxPages
+              : pages.length;
+          _debugLog(
+            'Processing $pagesToProcess web pages with Tesseract (max $maxPages)',
+          );
           try {
             // process page-by-page to update progress
             setState(() {
@@ -321,52 +338,76 @@ class OCRScreenState extends State<OCRScreen> {
 
           for (int i = 1; i <= doc.pageCount; i++) {
             final dynamic page = await doc.getPage(i);
+
+            // 1. ESCALADO
+            const double scale = 2.5;
+            final int renderWidth = (page.width * scale).toInt();
+            final int renderHeight = (page.height * scale).toInt();
+
+            // 2. RENDERIZADO (Usando backgroundFill: true para fondo blanco)
             final dynamic pageImage = await page.render(
-              width: page.width.toInt(),
-              height: page.height.toInt(),
+              width: renderWidth,
+              height: renderHeight,
+              backgroundFill: true,
             );
 
-            // attempt to extract bytes robustly
+            // 3. EXTRACCIÓN DE BYTES (MÉTODO MANUAL INFALIBLE)
             Uint8List? pageBytes;
+
             try {
-              pageBytes = pageImage.bytes as Uint8List?;
+              // En lugar de buscar un método mágico, usamos los píxeles crudos directamente.
+              // Esto convierte los píxeles brutos de la librería en una imagen de Flutter.
+              final Completer<ui.Image> completer = Completer();
+              ui.decodeImageFromPixels(
+                pageImage.pixels, // Esto SIEMPRE existe
+                pageImage.width,
+                pageImage.height,
+                ui.PixelFormat.rgba8888, // Formato estándar
+                completer.complete,
+              );
+              final ui.Image uiImage = await completer.future;
+
+              // Convertimos esa imagen a PNG
+              final ByteData? byteData = await uiImage.toByteData(
+                format: ui.ImageByteFormat.png,
+              );
+
+              if (byteData != null) {
+                pageBytes = byteData.buffer.asUint8List();
+              }
+
+              // Limpiamos la imagen de UI de la memoria
+              uiImage.dispose();
+            } catch (e) {
+              debugPrint('Error convirtiendo píxeles página $i: $e');
+            }
+
+            // Limpieza de memoria del PDF
+            try {
+              pageImage.dispose();
+              page.dispose();
             } catch (_) {}
 
-            if (pageBytes == null) {
-              try {
-                final ui.Image img = pageImage.image as ui.Image;
-                final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-                pageBytes = byteData?.buffer.asUint8List();
-              } catch (_) {}
-            }
-
-            try {
-              await page.close();
-            } catch (_) {
-              try {
-                page.dispose();
-              } catch (_) {}
-            }
-
+            // 4. ENVÍO AL SERVICIO OCR
             if (pageBytes != null) {
               final result = await _textractService.detectText(pageBytes);
               if (result.isNotEmpty) {
                 buffer.writeln('--- Página $i ---');
                 buffer.writeln(result);
+              } else {
+                buffer.writeln('--- Página $i (Sin texto detectado) ---');
               }
             } else {
               buffer.writeln('--- Página $i ---');
-              buffer.writeln('No se pudo renderizar la página.');
+              buffer.writeln(
+                'Error: No se pudo procesar la imagen de la página.',
+              );
             }
           }
 
           try {
-            await doc.close();
-          } catch (_) {
-            try {
-              doc.dispose();
-            } catch (_) {}
-          }
+            doc.dispose();
+          } catch (_) {}
 
           setState(() {
             _extractedText = buffer.toString().trim();
@@ -402,7 +443,10 @@ class OCRScreenState extends State<OCRScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
     );
   }
 
@@ -411,7 +455,8 @@ class OCRScreenState extends State<OCRScreen> {
     Color primaryColor = Theme.of(context).colorScheme.primary;
 
     // Check if AWS credentials are available
-    final hasCredentials = accessKey.isNotEmpty && secretKey.isNotEmpty && awsRegion.isNotEmpty;
+    final hasCredentials =
+        accessKey.isNotEmpty && secretKey.isNotEmpty && awsRegion.isNotEmpty;
 
     if (!hasCredentials) {
       return Scaffold(
@@ -429,10 +474,7 @@ class OCRScreenState extends State<OCRScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Configuración de AWS incompleta',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -468,9 +510,13 @@ class OCRScreenState extends State<OCRScreen> {
             _buildImagePickerSection(),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: (_pickedImage != null || _pickedImageBytes != null || _pickedPdfBytes != null) && !_isLoading
-                ? _processImage
-                : null,
+              onPressed:
+                  (_pickedImage != null ||
+                          _pickedImageBytes != null ||
+                          _pickedPdfBytes != null) &&
+                      !_isLoading
+                  ? _processImage
+                  : null,
               icon: const Icon(Icons.document_scanner_outlined),
               label: const Text('Extract Text'),
               style: ElevatedButton.styleFrom(
@@ -482,9 +528,16 @@ class OCRScreenState extends State<OCRScreen> {
             ),
             const SizedBox(height: 12),
             if (_isLoading && kIsWeb && _webOcrTotalPages > 0) ...[
-              Text('Procesando página $_webOcrProcessedPages de $_webOcrTotalPages', textAlign: TextAlign.center),
+              Text(
+                'Procesando página $_webOcrProcessedPages de $_webOcrTotalPages',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 8),
-              LinearProgressIndicator(value: _webOcrTotalPages > 0 ? (_webOcrProcessedPages / _webOcrTotalPages) : null),
+              LinearProgressIndicator(
+                value: _webOcrTotalPages > 0
+                    ? (_webOcrProcessedPages / _webOcrTotalPages)
+                    : null,
+              ),
               const SizedBox(height: 12),
             ],
             const SizedBox(height: 20),
@@ -518,46 +571,48 @@ class OCRScreenState extends State<OCRScreen> {
                   ),
                 )
               : _pickedImageBytes != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(20.0),
-                        minScale: 0.1,
-                        maxScale: 5.0,
-                        child: Image.memory(_pickedImageBytes!),
-                      ),
-                    )
-                  : _pdfPreviewBytes != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(20.0),
-                        minScale: 0.1,
-                        maxScale: 5.0,
-                        child: Image.memory(_pdfPreviewBytes!),
-                      ),
-                    )
-                  : _pickedPdfName != null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.picture_as_pdf, size: 64),
-                              const SizedBox(height: 8),
-                              Text(
-                                _pickedPdfName!,
-                                style: TextStyle(color: Theme.of(context).disabledColor),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        )
-                      : Center(
-                          child: Text(
-                            'No image or PDF selected.',
-                            style: TextStyle(color: Theme.of(context).disabledColor),
-                          ),
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20.0),
+                    minScale: 0.1,
+                    maxScale: 5.0,
+                    child: Image.memory(_pickedImageBytes!),
+                  ),
+                )
+              : _pdfPreviewBytes != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20.0),
+                    minScale: 0.1,
+                    maxScale: 5.0,
+                    child: Image.memory(_pdfPreviewBytes!),
+                  ),
+                )
+              : _pickedPdfName != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.picture_as_pdf, size: 64),
+                      const SizedBox(height: 8),
+                      Text(
+                        _pickedPdfName!,
+                        style: TextStyle(
+                          color: Theme.of(context).disabledColor,
                         ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    'No image or PDF selected.',
+                    style: TextStyle(color: Theme.of(context).disabledColor),
+                  ),
+                ),
         ),
         const SizedBox(height: 16),
         Row(
