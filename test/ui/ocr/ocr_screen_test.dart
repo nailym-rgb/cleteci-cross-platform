@@ -29,20 +29,24 @@ void main() {
           icon: icon,
           color: color,
           textractService: textractService ?? mockTextractService,
-          envGetter: envGetter ?? (key, {fallback}) {
-            // Provide valid AWS credentials for tests
-            if (key == 'AZ_ACCESS_KEY') return 'test-access-key';
-            if (key == 'AZ_SECRET_KEY') return 'test-secret-key';
-            if (key == 'AZ_REGION') return 'us-east-1';
-            return fallback ?? '';
-          },
+          envGetter:
+              envGetter ??
+              (key, {fallback}) {
+                // Provide valid AWS credentials for tests
+                if (key == 'AZ_ACCESS_KEY') return 'test-access-key';
+                if (key == 'AZ_SECRET_KEY') return 'test-secret-key';
+                if (key == 'AZ_REGION') return 'us-east-1';
+                return fallback ?? '';
+              },
         ),
       ),
     );
   }
 
   group('OCRScreen Widget Tests', () {
-    testWidgets('renders correctly with valid credentials', (WidgetTester tester) async {
+    testWidgets('renders correctly with valid credentials', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
@@ -59,7 +63,7 @@ void main() {
 
       // Verify image picker components exist
       expect(find.byType(Container), findsWidgets);
-      expect(find.text('No image selected.'), findsOneWidget);
+      expect(find.text('No image or PDF selected.'), findsOneWidget);
     });
 
     testWidgets('displays extract text button', (WidgetTester tester) async {
@@ -77,17 +81,23 @@ void main() {
       expect(find.byType(Divider), findsOneWidget);
     });
 
-    testWidgets('shows AWS configuration warning when credentials are missing', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestWidget(
-        envGetter: (key, {fallback}) => '', // Return empty strings for all env vars
-      ));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'shows AWS configuration warning when credentials are missing',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            envGetter: (key, {fallback}) =>
+                '', // Return empty strings for all env vars
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      // Should show the AWS configuration warning screen
-      expect(find.text('Configuración de AWS incompleta'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
-      expect(find.text('Volver'), findsOneWidget);
-    });
+        // Should show the AWS configuration warning screen
+        expect(find.text('Configuración de AWS incompleta'), findsOneWidget);
+        expect(find.byType(ElevatedButton), findsOneWidget);
+        expect(find.text('Volver'), findsOneWidget);
+      },
+    );
 
     testWidgets('widget builds without errors', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
@@ -164,7 +174,9 @@ void main() {
       expect(screen, isA<StatefulWidget>());
     });
 
-    testWidgets('OCRScreen has required parameters', (WidgetTester tester) async {
+    testWidgets('OCRScreen has required parameters', (
+      WidgetTester tester,
+    ) async {
       // This would fail to compile if title, icon, or color were not required
       final screen = OCRScreen(
         title: 'Required',
@@ -176,7 +188,9 @@ void main() {
       expect(screen.color, isNotNull);
     });
 
-    testWidgets('OCRScreen can have optional parameters', (WidgetTester tester) async {
+    testWidgets('OCRScreen can have optional parameters', (
+      WidgetTester tester,
+    ) async {
       final screen = OCRScreen(
         title: 'Test',
         icon: Icons.home,
@@ -198,7 +212,9 @@ void main() {
       expect(screen.key, equals(testKey));
     });
 
-    testWidgets('OCRScreen can be created with different colors', (WidgetTester tester) async {
+    testWidgets('OCRScreen can be created with different colors', (
+      WidgetTester tester,
+    ) async {
       final screen1 = OCRScreen(
         title: 'Test1',
         icon: Icons.one_k,
@@ -214,7 +230,9 @@ void main() {
       expect(screen1.color, isNot(equals(screen2.color)));
     });
 
-    testWidgets('OCRScreen can be created with different icons', (WidgetTester tester) async {
+    testWidgets('OCRScreen can be created with different icons', (
+      WidgetTester tester,
+    ) async {
       final screen1 = OCRScreen(
         title: 'Test1',
         icon: Icons.camera,
