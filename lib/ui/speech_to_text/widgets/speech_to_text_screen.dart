@@ -99,7 +99,8 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
       setState(() {
         _isListening = false;
         _soundLevel = 0.0;
-        _statusMessage = 'Speech recognition stopped. Tap microphone to start again.';
+        _statusMessage =
+            'Speech recognition stopped. Tap microphone to start again.';
       });
     } catch (e) {
       _showError('Error stopping speech recognition: ${e.toString()}');
@@ -136,7 +137,8 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
       setState(() {
         _isListening = false;
         _soundLevel = 0.0;
-        _statusMessage = 'Speech recognition stopped. Tap microphone to start again.';
+        _statusMessage =
+            'Speech recognition stopped. Tap microphone to start again.';
       });
     }
   }
@@ -209,7 +211,9 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                       size: 48,
                       color: _isListening
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -227,12 +231,17 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                         height: 4,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
-                          widthFactor: (_soundLevel + 1) / 2, // Normalize from -1..1 to 0..1
+                          widthFactor: ((_soundLevel + 1) / 2).clamp(
+                            0.0,
+                            1.0,
+                          ), // Normalize from -1..1 to 0..1
                           child: Container(
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.primary,
@@ -254,7 +263,9 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
               child: ElevatedButton.icon(
                 onPressed: onPressed,
                 icon: Icon(_isListening ? Icons.stop : Icons.mic),
-                label: Text(_isListening ? 'Stop Listening' : 'Start Listening'),
+                label: Text(
+                  _isListening ? 'Stop Listening' : 'Start Listening',
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isListening
                       ? Theme.of(context).colorScheme.error
@@ -262,7 +273,10 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen>
                   foregroundColor: _isListening
                       ? Theme.of(context).colorScheme.onError
                       : Theme.of(context).colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                   textStyle: const TextStyle(fontSize: 18),
                 ),
               ),

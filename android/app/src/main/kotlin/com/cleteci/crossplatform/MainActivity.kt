@@ -1,4 +1,4 @@
-package com.example.cleteci_cross_platform
+package com.cleteci.crossplatform
 
 import io.flutter.embedding.android.FlutterActivity
 

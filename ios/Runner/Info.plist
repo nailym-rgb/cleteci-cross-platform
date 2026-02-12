@@ -22,10 +22,31 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.161404762435-ih9m0hb9e2ji6n0a2lu87gk11uckq1su</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>GIDClientID</key>
+	<string>161404762435-ih9m0hb9e2ji6n0a2lu87gk11uckq1su.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We need to verify your identity to grant you access.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to the microphone to capture your voice and convert it to text.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need permission to process your voice and convert it to text on screen.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your photo library to select images.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -45,11 +66,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSMicrophoneUsageDescription</key>
-    <string>We need access to the microphone to capture your voice and convert it to text.</string>
-    <key>NSSpeechRecognitionUsageDescription</key>
-    <string>We need permission to process your voice and convert it to text on screen.</string>
-	<key>NSFaceIDUsageDescription</key>
-    <string>We need to verify your identity to grant you access.</string>
 </dict>
 </plist>

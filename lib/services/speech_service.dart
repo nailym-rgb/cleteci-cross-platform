@@ -20,7 +20,9 @@ class SpeechService {
 
       // Initialize speech to text
       _isInitialized = await _speechToText.initialize(
-        onError: (error) => throw SpeechServiceException('Speech initialization failed: $error'),
+        onError: (error) => throw SpeechServiceException(
+          'Speech initialization failed: $error',
+        ),
         onStatus: (status) {
           // Handle status changes if needed
         },
@@ -122,13 +124,7 @@ class SpeechServiceException implements Exception {
 }
 
 /// Enum for speech recognition status
-enum SpeechStatus {
-  notInitialized,
-  initialized,
-  listening,
-  stopped,
-  error,
-}
+enum SpeechStatus { notInitialized, initialized, listening, stopped, error }
 
 /// Model class for speech recognition results
 class SpeechResult {

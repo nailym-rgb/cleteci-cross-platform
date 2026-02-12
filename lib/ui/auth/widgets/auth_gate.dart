@@ -13,6 +13,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 import 'package:flutter_svg/svg.dart';
+import 'dart:io';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key, this.auth});
@@ -151,7 +152,11 @@ class AuthGate extends StatelessWidget {
               EmailAuthProvider(),
               if (dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID')?.isNotEmpty ??
                   false)
-                GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
+                GoogleProvider(
+                  clientId: Platform.isIOS
+                      ? dotenv.get('GOOGLE_IOS_CLIENT_ID')
+                      : dotenv.get('GOOGLE_OAUTH_CLIENT_ID'),
+                ),
             ],
             headerBuilder: (context, constraints, shrinkOffset) => Padding(
               padding: const EdgeInsets.all(20),

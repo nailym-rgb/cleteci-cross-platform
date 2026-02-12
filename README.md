@@ -55,3 +55,12 @@ Este proyecto utiliza GitHub Actions para la integración y el despliegue contin
 4. Descomenta los pasos de Docker Hub en `.github/workflows/ci.yml` para habilitar el push automático.
 
 Para más detalles y pasos avanzados, consulta [`docs/builds_and_deploys.md`](docs/builds_and_deploys.md).
+
+### Para cambia el nombre de la aplicacion
+utter pub run change_app_package:main [nuevo_nombre]
+
+### Para generar icons de la aplicacion
+flutter pub run flutter_launcher_icons
+
+### Generar android aab
+flutter build appbundle

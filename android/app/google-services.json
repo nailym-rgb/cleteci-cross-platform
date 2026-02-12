@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:161404762435:android:d856aa6590aba107db17f6",
+        "mobilesdk_app_id": "1:161404762435:android:3e4f0b074d24194fdb17f6",
         "android_client_info": {
-          "package_name": "com.example.cleteci_cross_platform"
+          "package_name": "com.cleteci.crossplatform"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "161404762435-61oo49fl1jdrljoo1qhq8fhg1s2g29m8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBoanO2gzDA8S0Yfr2p4xaxSb1av5g6ZVc"
@@ -20,7 +25,55 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "161404762435-61oo49fl1jdrljoo1qhq8fhg1s2g29m8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "161404762435-7eqlagqqtvmq5gkvdamkdefp9lt93c90.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.cleteciCrossPlatform"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161404762435:android:d856aa6590aba107db17f6",
+        "android_client_info": {
+          "package_name": "com.example.cleteci_cross_platform"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "161404762435-61oo49fl1jdrljoo1qhq8fhg1s2g29m8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoanO2gzDA8S0Yfr2p4xaxSb1av5g6ZVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "161404762435-61oo49fl1jdrljoo1qhq8fhg1s2g29m8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "161404762435-7eqlagqqtvmq5gkvdamkdefp9lt93c90.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.cleteciCrossPlatform"
+              }
+            }
+          ]
         }
       }
     }
