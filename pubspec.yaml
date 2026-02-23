@@ -58,6 +58,8 @@ dependencies:
   remove_from_coverage: ^2.0.0
   get_it: ^9.0.5
   email_validator: ^2.1.17
+  aws_s3_upload_lite: ^0.1.7
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

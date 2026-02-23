@@ -1,9 +1,16 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service_impl.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/user_service.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:aws_s3_upload_lite/aws_s3_upload_lite.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:path/path.dart' as path;
+import 'dart:typed_data';
 
 /// Formulario personalizado de registro que incluye campos adicionales
 class CustomRegisterForm extends StatefulWidget {
@@ -26,8 +33,6 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  final ImagePicker _picker = ImagePicker();
-
   UserService get _userService => widget._userService;
   FirebaseAuth get _auth => widget._auth;
 
@@ -42,29 +47,6 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickAvatar(ImageSource source) async {
-    try {
-      final pickedFile = await _picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _selectedAvatar = pickedFile;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al seleccionar imagen: $e')),
-        );
-      }
-    }
   }
 
   Future<void> _register() async {
@@ -82,19 +64,58 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
     });
 
     try {
+      String avatarUrl = ''; // Variable para almacenar la URL del avatar subido
+
+      if (_selectedAvatar != null) {
+        String extension = path.extension(_selectedAvatar!.path);
+        if (kIsWeb && extension.isEmpty) extension = '.png';
+
+        String uniqueFileName =
+            '${DateTime.now().millisecondsSinceEpoch}$extension';
+
+        String bucketName = dotenv.maybeGet('AWS_S3_BUCKET_NAME') ?? '';
+        String region = dotenv.maybeGet('AWS_S3_REGION') ?? '';
+        String accessKey = dotenv.maybeGet('AWS_S3_ACCESS_KEY') ?? '';
+        String secretKey = dotenv.maybeGet('AWS_S3_SECRETY_KEY') ?? '';
+        File file = File(_selectedAvatar!.path);
+
+        if (kIsWeb) {
+          // En Web, necesitamos convertir el XFile a un formato que AWS S3 pueda manejar
+          final Uint8List fileBytes = await _selectedAvatar!.readAsBytes();
+
+          await AwsS3.upload(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: fileBytes,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+        } else {
+          // En Móvil, el XFile ya es un File válido
+          await AwsS3.uploadFile(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: file,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+        }
+
+        avatarUrl =
+            "https://$bucketName.s3.amazonaws.com/profiles/$uniqueFileName";
+      }
+
       // Crear usuario en Firebase Auth
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      // Subir avatar si fue seleccionado (simplificado - en producción usarías Firebase Storage)
-      String? avatarUrl;
-      if (_selectedAvatar != null) {
-        // Aquí iría la lógica para subir la imagen a Firebase Storage
-        // Por ahora, solo guardamos null
-        avatarUrl = null;
-      }
 
       // Crear perfil en Firestore
       await _userService.createUserProfile(
@@ -121,6 +142,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
         });
       }
     } catch (e) {
+      debugPrint('Error en el registro: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -150,14 +172,26 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
   }
 
   Widget _buildAvatarSelector() {
+    // 1. Creamos una variable para definir el proveedor de la imagen dinámicamente
+    ImageProvider? getAvatarImage() {
+      if (_selectedAvatar == null) return null;
+
+      // 2. Si estamos en Web, leemos el "blob" como una imagen de red
+      if (kIsWeb) {
+        return NetworkImage(_selectedAvatar!.path);
+      }
+      // 3. Si estamos en Móvil, usamos el File tradicional
+      else {
+        return FileImage(File(_selectedAvatar!.path));
+      }
+    }
+
     return Center(
       child: Column(
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: _selectedAvatar != null
-                ? Image.network(_selectedAvatar!.path).image
-                : null,
+            backgroundImage: getAvatarImage(),
             child: _selectedAvatar == null
                 ? const Icon(Icons.person, size: 50)
                 : null,
@@ -167,12 +201,26 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextButton.icon(
-                onPressed: () => _pickAvatar(ImageSource.gallery),
+                onPressed: () async {
+                  final String? photoPath = await CamaraGalleryServiceImpl()
+                      .selectPhoto();
+                  if (photoPath == null) return;
+                  setState(() {
+                    _selectedAvatar = XFile(photoPath);
+                  });
+                },
                 icon: const Icon(Icons.photo_library),
                 label: const Text('Galería'),
               ),
               TextButton.icon(
-                onPressed: () => _pickAvatar(ImageSource.camera),
+                onPressed: () async {
+                  final String? photoPath = await CamaraGalleryServiceImpl()
+                      .takePhoto();
+                  if (photoPath == null) return;
+                  setState(() {
+                    _selectedAvatar = XFile(photoPath);
+                  });
+                },
                 icon: const Icon(Icons.camera_alt),
                 label: const Text('Cámara'),
               ),

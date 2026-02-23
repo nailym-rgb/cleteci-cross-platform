@@ -1,18 +1,30 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service_impl.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../models/user_profile.dart';
 import '../../../services/user_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aws_s3_upload_lite/aws_s3_upload_lite.dart';
+import 'package:path/path.dart' as path;
+import 'dart:typed_data';
 
 class CustomUserProfileScreen extends StatefulWidget {
-  CustomUserProfileScreen({super.key, UserService? userService, FirebaseAuth? auth})
-      : _userService = userService ?? UserService(),
-        _auth = auth ?? FirebaseAuth.instance;
+  CustomUserProfileScreen({
+    super.key,
+    UserService? userService,
+    FirebaseAuth? auth,
+  }) : _userService = userService ?? UserService(),
+       _auth = auth ?? FirebaseAuth.instance;
 
   final UserService _userService;
   final FirebaseAuth _auth;
 
   @override
-  State<CustomUserProfileScreen> createState() => _CustomUserProfileScreenState();
+  State<CustomUserProfileScreen> createState() =>
+      _CustomUserProfileScreenState();
 }
 
 class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
@@ -25,6 +37,8 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   // Controladores para edición directa
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
+
+  XFile? _selectedAvatar;
 
   @override
   void initState() {
@@ -58,9 +72,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar perfil: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cargar perfil: $e')));
       }
     }
   }
@@ -71,38 +85,159 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    await _userService.createUserProfile(
-      uid: user.uid,
-      email: user.email ?? '',
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-    );
-    await _loadUserProfile();
+    String? newAvatarUrl;
+    try {
+      if (_selectedAvatar != null) {
+        String extension = path.extension(_selectedAvatar!.path);
+        if (kIsWeb && extension.isEmpty) extension = '.png';
+
+        String uniqueFileName =
+            '${_userProfile!.uid}_${DateTime.now().millisecondsSinceEpoch}$extension';
+
+        String bucketName = dotenv.maybeGet('AWS_S3_BUCKET_NAME') ?? '';
+        String region = dotenv.maybeGet('AWS_S3_REGION') ?? '';
+        String accessKey = dotenv.maybeGet('AWS_S3_ACCESS_KEY') ?? '';
+        String secretKey = dotenv.maybeGet('AWS_S3_SECRETY_KEY') ?? '';
+
+        if (kIsWeb) {
+          // En Web, necesitamos convertir el XFile a un formato que AWS S3 pueda manejar
+          final Uint8List fileBytes = await _selectedAvatar!.readAsBytes();
+
+          await AwsS3.upload(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: fileBytes,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+        } else {
+          File file = File(_selectedAvatar!.path);
+
+          await AwsS3.uploadFile(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: file,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+        }
+        newAvatarUrl =
+            "https://$bucketName.s3.amazonaws.com/profiles/$uniqueFileName";
+      }
+
+      await _userService.createUserProfile(
+        uid: user.uid,
+        email: user.email ?? '',
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        avatarUrl: newAvatarUrl,
+      );
+      await _loadUserProfile();
+    } catch (e) {
+      debugPrint('Error en el registro: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error update profile: $e')));
+      }
+    }
   }
 
   Future<void> _updateExistingProfile() async {
-    await _userService.updateUserProfile(
-      uid: _userProfile!.uid,
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-    );
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
 
-    if (mounted) {
-      setState(() {
-        _userProfile = _userProfile!.copyWith(
-          firstName: _firstNameController.text.trim(),
-          lastName: _lastNameController.text.trim(),
-          updatedAt: DateTime.now(),
-        );
-      });
+    try {
+      String? newAvatarUrl;
+
+      if (_selectedAvatar != null) {
+        String extension = path.extension(_selectedAvatar!.path);
+        if (kIsWeb && extension.isEmpty) extension = '.png';
+
+        String uniqueFileName =
+            '${_userProfile!.uid}_${DateTime.now().millisecondsSinceEpoch}$extension';
+
+        String bucketName = dotenv.maybeGet('AWS_S3_BUCKET_NAME') ?? '';
+        String region = dotenv.maybeGet('AWS_S3_REGION') ?? '';
+        String accessKey = dotenv.maybeGet('AWS_S3_ACCESS_KEY') ?? '';
+        String secretKey = dotenv.maybeGet('AWS_S3_SECRETY_KEY') ?? '';
+
+        if (kIsWeb) {
+          // En Web, necesitamos convertir el XFile a un formato que AWS S3 pueda manejar
+          final Uint8List fileBytes = await _selectedAvatar!.readAsBytes();
+
+          String response = await AwsS3.upload(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: fileBytes,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+
+          debugPrint('S3 Upload Response: $response');
+        } else {
+          File file = File(_selectedAvatar!.path);
+
+          String response = await AwsS3.uploadFile(
+            accessKey: accessKey,
+            secretKey: secretKey,
+            file: file,
+            bucket: bucketName,
+            region: region,
+            destDir:
+                'profiles', // Crea una carpeta "perfiles" dentro del bucket
+            filename: uniqueFileName,
+          );
+
+          debugPrint('S3 Upload Response: $response');
+        }
+        newAvatarUrl =
+            "https://$bucketName.s3.amazonaws.com/profiles/$uniqueFileName";
+      }
+
+      final finalAvatarUrl = newAvatarUrl ?? _userProfile?.avatarUrl ?? '';
+
+      await _userService.updateUserProfile(
+        uid: _userProfile!.uid,
+        firstName: firstName,
+        lastName: lastName,
+        avatarUrl: finalAvatarUrl,
+      );
+
+      if (mounted) {
+        setState(() {
+          _userProfile = _userProfile!.copyWith(
+            firstName: firstName,
+            lastName: lastName,
+            avatarUrl: finalAvatarUrl,
+            updatedAt: DateTime.now(),
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint('Error en el registro: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error update profile: $e')));
+      }
     }
   }
 
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showSuccessSnackBar() {
@@ -143,7 +278,11 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
         children: [
           SizedBox(
             width: 32, // Ancho fijo para alinear iconos
-            child: Icon(icon, size: 24, color: enabled ? null : Theme.of(context).disabledColor),
+            child: Icon(
+              icon,
+              size: 24,
+              color: enabled ? null : Theme.of(context).disabledColor,
+            ),
           ),
           const SizedBox(width: 12),
           SizedBox(
@@ -165,13 +304,20 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
               decoration: InputDecoration(
                 hintText: hintText,
                 border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 filled: !enabled,
-                fillColor: enabled ? null : Theme.of(context).disabledColor.withValues(alpha: 0.1),
+                fillColor: enabled
+                    ? null
+                    : Theme.of(context).disabledColor.withValues(alpha: 0.1),
               ),
               style: TextStyle(
                 fontSize: 16,
-                color: enabled ? null : Theme.of(context).disabledColor.withValues(alpha: 0.6),
+                color: enabled
+                    ? null
+                    : Theme.of(context).disabledColor.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -181,6 +327,26 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   }
 
   Widget _buildProfileHeader() {
+    // 1. Creamos una variable para definir el proveedor de la imagen dinámicamente
+    ImageProvider? getAvatarImage() {
+      // 2. Si estamos en Web, leemos el "blob" como una imagen de red
+      if (kIsWeb) {
+        return _selectedAvatar != null
+            ? NetworkImage(_selectedAvatar!.path)
+            : (_userProfile?.avatarUrl != null
+                  ? NetworkImage(_userProfile!.avatarUrl!)
+                  : null);
+      }
+      // 3. Si estamos en Móvil, usamos el File tradicional
+      else {
+        return _selectedAvatar != null
+            ? FileImage(File(_selectedAvatar!.path))
+            : (_userProfile?.avatarUrl != null
+                  ? NetworkImage(_userProfile!.avatarUrl!)
+                  : null);
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -188,25 +354,53 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
           // Avatar del usuario
           CircleAvatar(
             radius: 50,
-            backgroundImage: _userProfile?.avatarUrl != null
-                ? NetworkImage(_userProfile!.avatarUrl!)
-                : null,
+            backgroundImage: getAvatarImage(),
             child: _userProfile?.avatarUrl == null
                 ? Text(
                     _userProfile?.initials ?? 'U',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   )
                 : null,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: () async {
+                  final String? photoPath = await CamaraGalleryServiceImpl()
+                      .selectPhoto();
+                  if (photoPath == null) return;
+                  setState(() {
+                    _selectedAvatar = XFile(photoPath);
+                  });
+                },
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Galería'),
+              ),
+              TextButton.icon(
+                onPressed: () async {
+                  final String? photoPath = await CamaraGalleryServiceImpl()
+                      .takePhoto();
+                  if (photoPath == null) return;
+                  setState(() {
+                    _selectedAvatar = XFile(photoPath);
+                  });
+                },
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Cámara'),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
           // Nombre completo
           Text(
             _userProfile?.fullName ?? 'Usuario',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
 
           // Email
@@ -227,7 +421,11 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(height: 16),
           Text('Error al cargar perfil: $error'),
           const SizedBox(height: 16),
@@ -278,7 +476,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
               _buildEditableField(
                 icon: Icons.email,
                 title: 'Correo electrónico',
-                controller: TextEditingController(text: _auth.currentUser?.email ?? ''),
+                controller: TextEditingController(
+                  text: _auth.currentUser?.email ?? '',
+                ),
                 hintText: 'correo@ejemplo.com',
                 enabled: false,
               ),
@@ -301,7 +501,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                crossAxisAlignment: isWeb ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+                crossAxisAlignment: isWeb
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.stretch,
                 children: [
                   const Text(
                     'Configuración de Cuenta',
@@ -363,7 +565,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text(signOutText),
           ),
         ],
