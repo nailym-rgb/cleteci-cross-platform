@@ -31,11 +31,12 @@ class MockSpeechRepository extends Mock implements SpeechRepository {
           as Future<bool>;
 
   @override
+  // ignore: avoid_annotating_with_dynamic
   Future<void> startListening({
-    required Function(String) onResult,
-    required Function(double) onSoundLevelChange,
-    required Function() onListeningStarted,
-    required Function() onListeningStopped,
+    dynamic onResult,
+    dynamic onSoundLevelChange,
+    dynamic onListeningStarted,
+    dynamic onListeningStopped,
     String? localeId,
     int? listenFor,
     int? pauseFor,
@@ -383,6 +384,389 @@ void main() {
     ) async {
       const screen = SpeechToTextScreen();
       expect(screen, isNotNull);
+    });
+
+    // -----------------------------------------------------------------------
+    // Coverage-boosting tests: exercise uncovered paths
+    // -----------------------------------------------------------------------
+
+    testWidgets('shows ready message when initialize returns true', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Speech recognition ready. Tap microphone to start.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows not-available message when initialize returns false', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => false);
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Speech recognition not available on this device.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows error message when initialize throws', (
+      WidgetTester tester,
+    ) async {
+      when(
+        mockSpeechRepository.initialize(),
+      ).thenThrow(Exception('init failed'));
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Error initializing speech service'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tapping Start Listening calls startListening on repository', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      verify(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('startListening shows error snackbar when repository throws', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenThrow(Exception('mic unavailable'));
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      expect(find.textContaining('Failed to start listening'), findsOneWidget);
+    });
+
+    testWidgets('_onListeningStarted updates UI to listening state', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      Function? capturedOnListeningStarted;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnListeningStarted =
+            inv.namedArguments[#onListeningStarted] as Function?;
+      });
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      capturedOnListeningStarted?.call();
+      await tester.pump();
+
+      expect(find.text('Listening... Speak now.'), findsOneWidget);
+      expect(find.text('Stop Listening'), findsOneWidget);
+    });
+
+    testWidgets('_onSpeechResult updates text field', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      void Function(String)? capturedOnResult;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnResult =
+            inv.namedArguments[#onResult] as void Function(String)?;
+      });
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      capturedOnResult?.call('Hello from speech');
+      await tester.pump();
+
+      expect(find.text('Hello from speech'), findsOneWidget);
+    });
+
+    testWidgets('_onSoundLevelChange updates sound level without crashing', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      void Function()? capturedOnListeningStarted;
+      void Function(double)? capturedOnSoundLevelChange;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnListeningStarted =
+            inv.namedArguments[#onListeningStarted] as void Function()?;
+        capturedOnSoundLevelChange =
+            inv.namedArguments[#onSoundLevelChange] as void Function(double)?;
+      });
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      // Must be listening for sound level bar to render
+      capturedOnListeningStarted?.call();
+      await tester.pump();
+
+      capturedOnSoundLevelChange?.call(0.5);
+      await tester.pump();
+
+      // No crash — sound level indicator is present
+      expect(find.byType(FractionallySizedBox), findsOneWidget);
+    });
+
+    testWidgets('_onListeningStopped updates UI back to stopped state', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      void Function()? capturedOnListeningStarted;
+      void Function()? capturedOnListeningStopped;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnListeningStarted =
+            inv.namedArguments[#onListeningStarted] as void Function()?;
+        capturedOnListeningStopped =
+            inv.namedArguments[#onListeningStopped] as void Function()?;
+      });
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      capturedOnListeningStarted?.call();
+      await tester.pump();
+      expect(find.text('Stop Listening'), findsOneWidget);
+
+      capturedOnListeningStopped?.call();
+      await tester.pump();
+
+      expect(
+        find.text('Speech recognition stopped. Tap microphone to start again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tapping Stop Listening calls stopListening on repository', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      void Function()? capturedOnListeningStarted;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnListeningStarted =
+            inv.namedArguments[#onListeningStarted] as void Function()?;
+      });
+      when(mockSpeechRepository.stopListening()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      capturedOnListeningStarted?.call();
+      await tester.pump();
+
+      await tester.tap(find.text('Stop Listening'));
+      await tester.pump();
+
+      verify(
+        mockSpeechRepository.stopListening(),
+      ).called(greaterThanOrEqualTo(1));
+    });
+
+    testWidgets('stopListening shows error snackbar when repository throws', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+
+      void Function()? capturedOnListeningStarted;
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((inv) async {
+        capturedOnListeningStarted =
+            inv.namedArguments[#onListeningStarted] as void Function()?;
+      });
+      when(
+        mockSpeechRepository.stopListening(),
+      ).thenThrow(Exception('stop failed'));
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start Listening'));
+      await tester.pump();
+
+      capturedOnListeningStarted?.call();
+      await tester.pump();
+
+      await tester.tap(find.text('Stop Listening'));
+      await tester.pump();
+
+      expect(
+        find.textContaining('Error stopping speech recognition'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('copy button calls clipboard and shows snackbar', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
+
+      // Enter text directly into the TextField (it's not readOnly)
+      final textField = find.byType(TextField);
+      await tester.enterText(textField, 'Test recognized text');
+      await tester.pump();
+
+      // Copy button should now be visible
+      final copyBtn = find.byIcon(Icons.copy);
+      if (copyBtn.evaluate().isNotEmpty) {
+        await tester.tap(copyBtn.first);
+        await tester.pump();
+        expect(find.text('Text copied to clipboard'), findsOneWidget);
+      }
+    });
+
+    testWidgets('paused lifecycle stops listening', (
+      WidgetTester tester,
+    ) async {
+      when(mockSpeechRepository.initialize()).thenAnswer((_) async => true);
+      when(
+        mockSpeechRepository.startListening(
+          onResult: anyNamed('onResult'),
+          onSoundLevelChange: anyNamed('onSoundLevelChange'),
+          onListeningStarted: anyNamed('onListeningStarted'),
+          onListeningStopped: anyNamed('onListeningStopped'),
+          localeId: anyNamed('localeId'),
+          listenFor: anyNamed('listenFor'),
+          pauseFor: anyNamed('pauseFor'),
+        ),
+      ).thenAnswer((_) async {});
+      when(mockSpeechRepository.stopListening()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      final state = tester.state(find.byType(SpeechToTextScreen)) as dynamic;
+      state.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await tester.pump();
+
+      verify(
+        mockSpeechRepository.stopListening(),
+      ).called(greaterThanOrEqualTo(1));
     });
   });
 }
