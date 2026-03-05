@@ -2,16 +2,21 @@ import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'package:cleteci_cross_platform/config/service_locator.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Register extends StatelessWidget {
-  const Register({super.key});
+  const Register({super.key, this.firebaseAuth});
+
+  final FirebaseAuth? firebaseAuth;
 
   @override
   Widget build(BuildContext context) {
+    final auth = firebaseAuth ?? getIt<FirebaseAuth>();
+
     return RegisterScreen(
       showPasswordVisibilityToggle: true,
-      auth: FirebaseAuth.instance,
+      auth: auth,
       providers: [EmailAuthProvider()],
       showAuthActionSwitch: false,
       actions: [
@@ -19,7 +24,7 @@ class Register extends StatelessWidget {
           // Mostrar mensaje de éxito inmediatamente
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('¡Registro exitoso! Redirigiendo al login...'),
+              content: const Text('Registro exitoso! Redirigiendo al login...'),
               backgroundColor: Theme.of(context).colorScheme.primary,
               duration: const Duration(seconds: 2),
             ),

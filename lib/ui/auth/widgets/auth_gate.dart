@@ -1,10 +1,10 @@
 import 'package:cleteci_cross_platform/config/service_locator.dart';
-import 'package:cleteci_cross_platform/services/auth_service.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/usecases/auth/sign_in_use_case.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/forgot_password.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
-import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
@@ -15,14 +15,12 @@ import 'package:cleteci_cross_platform/ui/common/widgets/default_page.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key, this.auth});
+  const AuthGate({super.key, this.auth, this.isTestMode = false});
   static const signIn = 'sign-in';
   final FirebaseAuth? auth;
+  final bool isTestMode;
 
   Widget _buildTestModeUI(BuildContext context) {
-    final authService = getIt<AuthService>();
-    final firebaseAuth = auth ?? authService.firebaseAuth;
-
     return Scaffold(
       appBar: const DefaultAppBar(title: signIn),
       body: Center(
@@ -79,7 +77,8 @@ class AuthGate extends StatelessWidget {
                     key: const Key('sign-in-button'),
                     onPressed: () async {
                       try {
-                        await firebaseAuth.signInWithEmailAndPassword(
+                        final signInUseCase = getIt<SignInUseCase>();
+                        await signInUseCase(
                           email: 'test@example.com',
                           password: 'testpassword123',
                         );
@@ -199,8 +198,13 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = getIt<AuthService>();
-    final firebaseAuth = auth ?? authService.firebaseAuth;
+    final authRepository = getIt<AuthRepository>();
+
+    // If a FirebaseAuth instance is provided (e.g., in tests), use it directly.
+    // Otherwise, delegate to the domain AuthRepository.
+    final authStream = auth != null
+        ? auth!.authStateChanges().map((user) => user != null ? user.uid : null)
+        : authRepository.authStateChanges.map((entity) => entity?.uid);
 
     return FutureBuilder(
       future: Firebase.apps.isEmpty ? Firebase.initializeApp() : Future.value(),
@@ -209,11 +213,11 @@ class AuthGate extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return StreamBuilder<User?>(
-          stream: firebaseAuth.authStateChanges(),
+        return StreamBuilder<String?>(
+          stream: authStream,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return firebaseAuth is MockFirebaseAuth
+              return isTestMode
                   ? _buildTestModeUI(context)
                   : _buildProductionUI();
             }

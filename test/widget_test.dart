@@ -5,10 +5,39 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'dart:typed_data';
+
 import 'package:cleteci_cross_platform/app.dart';
 import 'package:cleteci_cross_platform/config/service_locator.dart';
+import 'package:cleteci_cross_platform/domain/repositories/ocr_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+
+// Mock FirebaseFirestore to avoid calling FirebaseFirestore.instance
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
+// Mock OcrRepository to avoid dotenv initialization in test
+class MockOcrRepository extends Mock implements OcrRepository {
+  @override
+  Future<String> extractTextFromImage(Uint8List imageBytes) =>
+      super.noSuchMethod(
+            Invocation.method(#extractTextFromImage, [imageBytes]),
+            returnValue: Future.value(''),
+            returnValueForMissingStub: Future.value(''),
+          )
+          as Future<String>;
+
+  @override
+  Future<String> extractTextFromPdf(Uint8List pdfBytes) =>
+      super.noSuchMethod(
+            Invocation.method(#extractTextFromPdf, [pdfBytes]),
+            returnValue: Future.value(''),
+            returnValueForMissingStub: Future.value(''),
+          )
+          as Future<String>;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,9 +45,11 @@ void main() {
   setUp(() {
     // Reset service locator before each test
     resetServiceLocator();
-    // Setup service locator for testing with mock auth
+    // Setup service locator for testing with mock auth and firestore
     setupServiceLocatorForTesting(
       mockFirebaseAuth: MockFirebaseAuth(),
+      mockFirebaseFirestore: MockFirebaseFirestore(),
+      mockOcrRepository: MockOcrRepository(),
     );
   });
 

@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-/// Modelo de datos para el perfil de usuario en Firestore
-class UserProfile {
+/// Entidad de dominio para el perfil de usuario
+/// Representa los datos básicos del usuario sin dependencias externas
+class UserProfileEntity {
   static const _sentinel = Object();
   final String uid;
   final String email;
@@ -11,7 +10,7 @@ class UserProfile {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const UserProfile({
+  const UserProfileEntity({
     required this.uid,
     required this.email,
     required this.firstName,
@@ -27,41 +26,14 @@ class UserProfile {
   /// Iniciales del usuario para avatar por defecto
   String get initials => '${firstName.isNotEmpty ? firstName[0] : ''}${lastName.isNotEmpty ? lastName[0] : ''}'.toUpperCase();
 
-  /// Crear instancia desde un documento de Firestore
-  factory UserProfile.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-    return UserProfile(
-      uid: doc.id,
-      email: data['email'] ?? '',
-      firstName: data['firstName'] ?? '',
-      lastName: data['lastName'] ?? '',
-      avatarUrl: data['avatarUrl'],
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-    );
-  }
-
-  /// Convertir a mapa para guardar en Firestore
-  Map<String, dynamic> toFirestore() {
-    return {
-      'email': email,
-      'firstName': firstName,
-      'lastName': lastName,
-      'avatarUrl': avatarUrl,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
-    };
-  }
-
   /// Crear copia con campos actualizados
-  UserProfile copyWith({
+  UserProfileEntity copyWith({
     String? firstName,
     String? lastName,
     Object? avatarUrl = _sentinel,
     DateTime? updatedAt,
   }) {
-    return UserProfile(
+    return UserProfileEntity(
       uid: uid,
       email: email,
       firstName: firstName ?? this.firstName,
@@ -71,4 +43,33 @@ class UserProfile {
       updatedAt: updatedAt ?? DateTime.now(),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is UserProfileEntity &&
+        other.uid == uid &&
+        other.email == email &&
+        other.firstName == firstName &&
+        other.lastName == lastName &&
+        other.avatarUrl == avatarUrl &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        uid,
+        email,
+        firstName,
+        lastName,
+        avatarUrl,
+        createdAt,
+        updatedAt,
+      );
+
+  @override
+  String toString() =>
+      'UserProfileEntity(uid: $uid, email: $email, firstName: $firstName, '
+      'lastName: $lastName, avatarUrl: $avatarUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
 }

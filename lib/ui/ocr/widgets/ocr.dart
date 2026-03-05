@@ -1,8 +1,6 @@
-import 'package:aws_textract_api/textract-2018-06-27.dart';
-import 'package:cleteci_cross_platform/ui/ocr/view_model/ocr.dart';
+import 'package:cleteci_cross_platform/domain/repositories/ocr_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'dart:convert';
@@ -10,6 +8,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../pdf_renderer.dart';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:get_it/get_it.dart';
 import 'package:pdf_render_plus/pdf_render.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -20,29 +19,16 @@ class OCRScreen extends StatefulWidget {
     required this.title,
     required this.icon,
     required this.color,
-    TextractService? textractService,
+    OcrRepository? ocrRepository,
     ImagePicker? imagePicker,
-    String Function(String, {String? fallback})? envGetter,
-  }) : _textractService = textractService,
-       _imagePicker = imagePicker,
-       _envGetter = envGetter ?? _safeEnvGetter;
+  }) : _ocrRepository = ocrRepository,
+       _imagePicker = imagePicker;
 
   final String title;
   final IconData icon;
   final MaterialColor color;
-  final TextractService? _textractService;
+  final OcrRepository? _ocrRepository;
   final ImagePicker? _imagePicker;
-  final String Function(String, {String? fallback}) _envGetter;
-
-  // Safe environment getter that handles dotenv errors
-  static String _safeEnvGetter(String key, {String? fallback}) {
-    try {
-      return dotenv.get(key, fallback: fallback ?? '');
-    } catch (e) {
-      // If dotenv is not available or key doesn't exist, return fallback
-      return fallback ?? '';
-    }
-  }
 
   @override
   OCRScreenState createState() => OCRScreenState();
@@ -50,35 +36,13 @@ class OCRScreen extends StatefulWidget {
 
 class OCRScreenState extends State<OCRScreen> {
   late final ImagePicker _picker;
-  late final TextractService _textractService;
-
-  // Textract Service Initialization
-  late final String accessKey;
-  late final String secretKey;
-  late final String awsRegion;
+  late final OcrRepository _ocrRepository;
 
   @override
   void initState() {
     super.initState();
-    // Initialize dependencies
     _picker = widget._imagePicker ?? ImagePicker();
-
-    // Initialize AWS credentials with fallback values first
-    accessKey = widget._envGetter('AZ_ACCESS_KEY', fallback: '');
-    secretKey = widget._envGetter('AZ_SECRET_KEY', fallback: '');
-    awsRegion = widget._envGetter('AZ_REGION', fallback: 'us-east-1');
-
-    // Then initialize textract service with the credentials
-    _textractService = widget._textractService ?? _createTextractService();
-  }
-
-  TextractService _createTextractService() {
-    final credentials = AwsClientCredentials(
-      accessKey: accessKey,
-      secretKey: secretKey,
-    );
-    final service = Textract(region: awsRegion, credentials: credentials);
-    return TextractService(service);
+    _ocrRepository = widget._ocrRepository ?? GetIt.instance<OcrRepository>();
   }
 
   XFile? _pickedImage;
@@ -121,14 +85,9 @@ class OCRScreenState extends State<OCRScreen> {
         }
       }
     } catch (e) {
-      _debugLog('Failed to pick image', e as Object, StackTrace.current);
+      _debugLog('Failed to pick image', e, StackTrace.current);
       _showErrorSnackbar('Failed to pick image: $e');
     }
-  }
-
-  Future<void> _pickPdf() async {
-    // Forward to unified picker
-    await _pickFile();
   }
 
   Future<void> _pickFile() async {
@@ -200,7 +159,7 @@ class OCRScreenState extends State<OCRScreen> {
         } else {
           try {
             _debugLog('Opening PDF for preview');
-            final dynamic doc = await PdfDocument.openData(bytes as Uint8List);
+            final dynamic doc = await PdfDocument.openData(bytes);
             _debugLog('PDF opened, pageCount=${doc.pageCount}');
             final dynamic page = await doc.getPage(1);
             _debugLog('Got page 1: width=${page.width}, height=${page.height}');
@@ -278,9 +237,9 @@ class OCRScreenState extends State<OCRScreen> {
 
     try {
       if (_pickedPdfBytes != null) {
-        final buffer = StringBuffer();
         if (kIsWeb) {
-          // On web, use cached pages rendered via pdf.js helper
+          // On web, delegate to the repository which uses cached pages from
+          // the web PDF cache rendered via pdf.js.
           final pages = _webPdfPagesCache[_pickedPdfName];
           if (pages == null || pages.isEmpty) {
             _debugLog('No cached web-rendered pages for $_pickedPdfName');
@@ -293,21 +252,24 @@ class OCRScreenState extends State<OCRScreen> {
             return;
           }
 
-          // Use client-side OCR (Tesseract.js) on web when no backend is available.
+          // Update progress state using a separate page-by-page loop via repo.
+          // We do this manually here because the widget needs to update
+          // _webOcrProcessedPages for the progress indicator.
           const int maxPages = 5;
           final int pagesToProcess = pages.length > maxPages
               ? maxPages
               : pages.length;
+          final buffer = StringBuffer();
+
           _debugLog(
             'Processing $pagesToProcess web pages with Tesseract (max $maxPages)',
           );
-          try {
-            // process page-by-page to update progress
-            setState(() {
-              _webOcrTotalPages = pagesToProcess;
-              _webOcrProcessedPages = 0;
-            });
+          setState(() {
+            _webOcrTotalPages = pagesToProcess;
+            _webOcrProcessedPages = 0;
+          });
 
+          try {
             for (int i = 0; i < pagesToProcess; i++) {
               final dataUrl = pages[i];
               final text = await ocrDataUrl(dataUrl);
@@ -333,84 +295,12 @@ class OCRScreenState extends State<OCRScreen> {
             _extractedText = buffer.toString().trim();
           });
         } else {
-          // Process each PDF page: render to PNG and call detectText (native platforms)
-          final dynamic doc = await PdfDocument.openData(_pickedPdfBytes!);
-
-          for (int i = 1; i <= doc.pageCount; i++) {
-            final dynamic page = await doc.getPage(i);
-
-            // 1. ESCALADO
-            const double scale = 2.5;
-            final int renderWidth = (page.width * scale).toInt();
-            final int renderHeight = (page.height * scale).toInt();
-
-            // 2. RENDERIZADO (Usando backgroundFill: true para fondo blanco)
-            final dynamic pageImage = await page.render(
-              width: renderWidth,
-              height: renderHeight,
-              backgroundFill: true,
-            );
-
-            // 3. EXTRACCIÓN DE BYTES (MÉTODO MANUAL INFALIBLE)
-            Uint8List? pageBytes;
-
-            try {
-              // En lugar de buscar un método mágico, usamos los píxeles crudos directamente.
-              // Esto convierte los píxeles brutos de la librería en una imagen de Flutter.
-              final Completer<ui.Image> completer = Completer();
-              ui.decodeImageFromPixels(
-                pageImage.pixels, // Esto SIEMPRE existe
-                pageImage.width,
-                pageImage.height,
-                ui.PixelFormat.rgba8888, // Formato estándar
-                completer.complete,
-              );
-              final ui.Image uiImage = await completer.future;
-
-              // Convertimos esa imagen a PNG
-              final ByteData? byteData = await uiImage.toByteData(
-                format: ui.ImageByteFormat.png,
-              );
-
-              if (byteData != null) {
-                pageBytes = byteData.buffer.asUint8List();
-              }
-
-              // Limpiamos la imagen de UI de la memoria
-              uiImage.dispose();
-            } catch (e) {
-              debugPrint('Error convirtiendo píxeles página $i: $e');
-            }
-
-            // Limpieza de memoria del PDF
-            try {
-              pageImage.dispose();
-              page.dispose();
-            } catch (_) {}
-
-            // 4. ENVÍO AL SERVICIO OCR
-            if (pageBytes != null) {
-              final result = await _textractService.detectText(pageBytes);
-              if (result.isNotEmpty) {
-                buffer.writeln('--- Página $i ---');
-                buffer.writeln(result);
-              } else {
-                buffer.writeln('--- Página $i (Sin texto detectado) ---');
-              }
-            } else {
-              buffer.writeln('--- Página $i ---');
-              buffer.writeln(
-                'Error: No se pudo procesar la imagen de la página.',
-              );
-            }
-          }
-
-          try {
-            doc.dispose();
-          } catch (_) {}
-
+          // Native: delegate fully to OcrRepository
+          final result = await _ocrRepository.extractTextFromPdf(
+            _pickedPdfBytes!,
+          );
           setState(() {
-            _extractedText = buffer.toString().trim();
+            _extractedText = result;
           });
         }
       } else {
@@ -424,7 +314,7 @@ class OCRScreenState extends State<OCRScreen> {
         if (imageBytes == null) {
           _showErrorSnackbar('No image bytes available for processing.');
         } else {
-          final result = await _textractService.detectText(imageBytes);
+          final result = await _ocrRepository.extractTextFromImage(imageBytes);
           setState(() {
             _extractedText = result;
           });
@@ -453,53 +343,6 @@ class OCRScreenState extends State<OCRScreen> {
   @override
   Widget build(BuildContext context) {
     Color primaryColor = Theme.of(context).colorScheme.primary;
-
-    // Check if AWS credentials are available
-    final hasCredentials =
-        accessKey.isNotEmpty && secretKey.isNotEmpty && awsRegion.isNotEmpty;
-
-    if (!hasCredentials) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Configuración de AWS incompleta',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Las credenciales de AWS Textract no están configuradas correctamente. '
-                  'Por favor contacte al administrador del sistema.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).disabledColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Volver'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -636,9 +479,6 @@ class OCRScreenState extends State<OCRScreen> {
 
   @override
   void dispose() {
-    try {
-      _textractService.close();
-    } catch (_) {}
     super.dispose();
   }
 

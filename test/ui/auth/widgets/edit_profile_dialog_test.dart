@@ -4,22 +4,22 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/edit_profile_dialog.dart';
-import 'package:cleteci_cross_platform/models/user_profile.dart';
-import 'package:cleteci_cross_platform/services/user_service.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart';
 
 // Generate mocks
-@GenerateMocks([ImagePicker, UserService, XFile])
-import 'edit_profile_dialog_test_new.mocks.dart';
+@GenerateMocks([ImagePicker, UpdateUserProfile, XFile])
+import 'edit_profile_dialog_test.mocks.dart';
 
 void main() {
   late MockImagePicker mockImagePicker;
-  late MockUserService mockUserService;
-  late UserProfile testUserProfile;
+  late MockUpdateUserProfile mockUpdateUserProfile;
+  late UserProfileEntity testUserProfile;
 
   setUp(() {
     mockImagePicker = MockImagePicker();
-    mockUserService = MockUserService();
-    testUserProfile = UserProfile(
+    mockUpdateUserProfile = MockUpdateUserProfile();
+    testUserProfile = UserProfileEntity(
       uid: 'test-uid',
       email: 'test@example.com',
       firstName: 'John',
@@ -40,7 +40,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -66,7 +66,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -94,7 +94,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -122,7 +122,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -154,7 +154,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -186,7 +186,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -208,12 +208,7 @@ void main() {
 
     testWidgets('should show loading state during save', (WidgetTester tester) async {
       // Mock successful save
-      when(mockUserService.updateUserProfile(
-        uid: anyNamed('uid'),
-        firstName: anyNamed('firstName'),
-        lastName: anyNamed('lastName'),
-        avatarUrl: anyNamed('avatarUrl'),
-      )).thenAnswer((_) async => Future.value());
+      when(mockUpdateUserProfile.call(any)).thenAnswer((_) async => Future.value());
 
       await tester.pumpWidget(
         MaterialApp(
@@ -224,7 +219,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -236,10 +231,6 @@ void main() {
 
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
-
-      // Note: Testing the actual save functionality would require dependency injection
-      // for the UserService, which is not currently implemented in the widget.
-      // This test verifies the UI structure is correct.
 
       expect(find.text('Guardar'), findsOneWidget);
     });
@@ -254,7 +245,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -282,7 +273,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -304,7 +295,7 @@ void main() {
     });
 
     testWidgets('should display avatar with user initials when no avatar', (WidgetTester tester) async {
-      final profileWithoutAvatar = UserProfile(
+      final profileWithoutAvatar = UserProfileEntity(
         uid: 'test-uid',
         email: 'test@example.com',
         firstName: 'John',
@@ -322,7 +313,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: profileWithoutAvatar,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -349,7 +340,7 @@ void main() {
                   context: context,
                   builder: (context) => EditProfileDialog(
                     userProfile: testUserProfile,
-                    userService: mockUserService,
+                    updateUserProfile: mockUpdateUserProfile,
                   ),
                 ),
                 child: const Text('Show Dialog'),
@@ -364,6 +355,39 @@ void main() {
 
       // Should have SingleChildScrollView for scrollable content
       expect(find.byType(SingleChildScrollView), findsOneWidget);
+    });
+
+    testWidgets('should call UpdateUserProfile use case on valid save', (WidgetTester tester) async {
+      when(mockUpdateUserProfile.call(any)).thenAnswer((_) async => Future.value());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (context) => EditProfileDialog(
+                    userProfile: testUserProfile,
+                    updateUserProfile: mockUpdateUserProfile,
+                  ),
+                ),
+                child: const Text('Show Dialog'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Dialog'));
+      await tester.pumpAndSettle();
+
+      // Tap save with valid data
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      // Should have called UpdateUserProfile with the entity
+      verify(mockUpdateUserProfile.call(any)).called(1);
     });
   });
 }

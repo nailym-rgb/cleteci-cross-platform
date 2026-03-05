@@ -1,95 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/repositories/user_profile_repository.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart';
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_register_form.dart';
-import 'package:cleteci_cross_platform/services/user_service.dart';
 import '../../../config/firebase_test_utils.dart';
 
-// Mock classes
-class MockUserService extends Mock implements UserService {
+final _testUserEntity = UserProfileEntity(
+  uid: 'mock-uid',
+  email: 'test@test.com',
+  firstName: 'Juan',
+  lastName: 'Perez',
+  createdAt: DateTime(2024),
+  updatedAt: DateTime(2024),
+);
+
+// Mock AuthRepository that simulates successful user creation
+class MockAuthRepository extends Mock implements AuthRepository {
   @override
-  Future<void> createUserProfile({
-    required String uid,
+  UserProfileEntity? get currentUser => null;
+
+  @override
+  Stream<UserProfileEntity?> get authStateChanges => Stream.value(null);
+
+  @override
+  Future<UserProfileEntity> createUserWithEmailAndPassword({
     required String email,
-    required String firstName,
-    required String lastName,
-    String? avatarUrl,
-  }) {
-    // Esto intercepta la llamada para que podamos simular éxito o fallo
-    return super.noSuchMethod(
-      Invocation.method(#createUserProfile, [], {
-        #uid: uid,
-        #email: email,
-        #firstName: firstName,
-        #lastName: lastName,
-        #avatarUrl: avatarUrl,
-      }),
-      returnValue: Future.value(),
-      returnValueForMissingStub: Future.value(),
-    );
+    required String password,
+  }) async {
+    return _testUserEntity.copyWith();
   }
 }
 
-class SpyUserService extends Mock implements UserService {
-  // Variables para guardar lo que recibe el método
+// Mock UserProfileRepository for UpdateUserProfile use case
+class MockUserProfileRepository extends Mock implements UserProfileRepository {
   String? capturedUid;
   String? capturedEmail;
   bool wasCalled = false;
 
   @override
-  Future<void> createUserProfile({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? avatarUrl,
-  }) async {
-    // 1. Guardamos los datos para verificarlos después (Spying)
-    capturedUid = uid;
-    capturedEmail = email;
-    wasCalled = true;
+  Future<UserProfileEntity?> getProfile(String uid) async => null;
 
-    // 2. Retornamos un Future completado (Éxito inmediato)
-    return Future.value();
+  @override
+  Future<void> updateProfile(UserProfileEntity profile) async {
+    capturedUid = profile.uid;
+    capturedEmail = profile.email;
+    wasCalled = true;
   }
+
+  @override
+  Future<void> deleteProfile(String uid) async {}
+
+  @override
+  Stream<UserProfileEntity?> watchProfile(String uid) => Stream.value(null);
 }
 
-class FailingUserService extends Mock implements UserService {
+// Failing UserProfileRepository
+class FailingUserProfileRepository extends Mock
+    implements UserProfileRepository {
   @override
-  Future<void> createUserProfile({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? avatarUrl,
-  }) async {
-    // En lugar de usar 'when', lanzamos el error directamente aquí
+  Future<UserProfileEntity?> getProfile(String uid) async => null;
+
+  @override
+  Future<void> updateProfile(UserProfileEntity profile) async {
     throw Exception('Error de conexión a BD');
   }
+
+  @override
+  Future<void> deleteProfile(String uid) async {}
+
+  @override
+  Stream<UserProfileEntity?> watchProfile(String uid) => Stream.value(null);
+}
+
+// Mock CamaraGalleryService — returns null (no photo selected/taken)
+class MockCamaraGalleryService extends Mock implements CamaraGalleryService {
+  @override
+  Future<String?> takePhoto() async => null;
+
+  @override
+  Future<String?> selectPhoto() async => null;
 }
 
 void main() {
-  late MockUserService mockUserService;
-  late MockFirebaseAuth mockAuth;
+  late MockAuthRepository mockAuthRepository;
+  late MockUserProfileRepository mockUserProfileRepository;
+  late MockCamaraGalleryService mockCamaraGalleryService;
 
   setUpAll(() async {
     await setupFirebaseTestMocks();
   });
 
   setUp(() {
-    mockUserService = MockUserService();
-    mockAuth = MockFirebaseAuth();
+    mockAuthRepository = MockAuthRepository();
+    mockUserProfileRepository = MockUserProfileRepository();
+    mockCamaraGalleryService = MockCamaraGalleryService();
   });
 
-  Widget createTestWidget({UserService? userService}) {
+  Widget createTestWidget({
+    UpdateUserProfile? updateUserProfile,
+    AuthRepository? authRepository,
+  }) {
     return MaterialApp(
       home: SizedBox(
         height: 1000, // Give enough height for scrolling
         child: CustomRegisterForm(
-          userService: userService ?? mockUserService,
-          auth: mockAuth,
+          authRepository: authRepository ?? mockAuthRepository,
+          updateUserProfile:
+              updateUserProfile ?? UpdateUserProfile(mockUserProfileRepository),
+          camaraGalleryService: mockCamaraGalleryService,
         ),
       ),
     );
@@ -122,8 +145,8 @@ void main() {
 
       // Verify avatar selector components
       expect(find.byType(CircleAvatar), findsOneWidget);
-      expect(find.text('Galería'), findsOneWidget);
-      expect(find.text('Cámara'), findsOneWidget);
+      expect(find.text('Galeria'), findsOneWidget);
+      expect(find.text('Camara'), findsOneWidget);
     });
 
     testWidgets('displays form fields', (WidgetTester tester) async {
@@ -447,11 +470,14 @@ void main() {
     testWidgets('Éxito: Crea usuario, guarda en DB y muestra éxito', (
       WidgetTester tester,
     ) async {
-      // 1. PREPARACIÓN: Usamos el Spy
-      final spyService = SpyUserService();
+      // 1. PREPARACIÓN: Usamos el spy repository
+      final spyRepo = MockUserProfileRepository();
+      final spyUpdateUseCase = UpdateUserProfile(spyRepo);
 
       // Inyectamos el spy
-      await tester.pumpWidget(createTestWidget(userService: spyService));
+      await tester.pumpWidget(
+        createTestWidget(updateUserProfile: spyUpdateUseCase),
+      );
       await tester.pumpAndSettle();
 
       // 2. Llenar formulario
@@ -477,21 +503,21 @@ void main() {
 
       // A) Verificar que el método fue llamado
       expect(
-        spyService.wasCalled,
+        spyRepo.wasCalled,
         true,
-        reason: 'El servicio debió ser llamado',
+        reason: 'El repositorio debió ser llamado',
       );
 
       // B) Verificar los datos exactos
-      expect(spyService.wasCalled, true);
+      expect(spyRepo.wasCalled, true);
       expect(
-        spyService.capturedEmail,
+        spyRepo.capturedEmail,
         'test@test.com',
       ); // El email que escribió fillForm
 
       // C) Verificar el UID (debe ser un String, no nulo)
-      expect(spyService.capturedUid, isNotNull);
-      expect(spyService.capturedUid, isNotEmpty);
+      expect(spyRepo.capturedUid, isNotNull);
+      expect(spyRepo.capturedUid, isNotEmpty);
 
       // 7. Verificar SnackBar de éxito
       expect(
@@ -525,21 +551,22 @@ void main() {
       // when(mockAuth.createUserWithEmailAndPassword(...)).thenThrow(FirebaseAuthException(code: 'error'));
     });
 
-    testWidgets('Fallo Service: Muestra error si UserService falla', (
+    testWidgets('Fallo Service: Muestra error si UserProfileRepository falla', (
       WidgetTester tester,
     ) async {
-      // 1. PREPARACIÓN: Usamos el servicio "Fake" que siempre falla.
-      // No necesitamos 'when' ni 'anyNamed'. La clase ya trae el error por dentro.
-      final failingService = FailingUserService();
+      // 1. PREPARACIÓN: Usamos el repositorio "Fake" que siempre falla.
+      final failingRepo = FailingUserProfileRepository();
+      final failingUpdateUseCase = UpdateUserProfile(failingRepo);
 
-      // Inyectamos el servicio fallido al crear el widget
+      // Inyectamos el repositorio fallido al crear el widget
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: CustomRegisterForm(
-              userService:
-                  failingService, // <--- Aquí usamos el servicio que falla
-              auth: mockAuth, // El Auth sigue siendo el normal (éxito)
+              updateUserProfile: failingUpdateUseCase,
+              authRepository:
+                  mockAuthRepository, // El Auth sigue siendo el normal (éxito)
+              camaraGalleryService: mockCamaraGalleryService,
             ),
           ),
         ),

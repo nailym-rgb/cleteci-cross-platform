@@ -1,12 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Sets up Firebase test mocks
+/// Sets up Firebase test mocks using the official platform interface mock.
+/// This properly registers a mock platform so that [Firebase.initializeApp]
+/// succeeds and [Firebase.apps] is populated in the test environment.
 Future<void> setupFirebaseTestMocks() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // Mock Firebase initialization - simplified approach
-  // This will work for basic testing without full Firebase mocking
+  // Register the mock Firebase platform — this makes Firebase.initializeApp()
+  // work in pure Dart tests without native platform channels.
+  setupFirebaseCoreMocks();
+
+  // Now Firebase.initializeApp will succeed because the mock platform is set.
   try {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -17,6 +23,6 @@ Future<void> setupFirebaseTestMocks() async {
       ),
     );
   } catch (e) {
-    // Firebase might already be initialized, ignore
+    // Firebase might already be initialized from another test, ignore
   }
 }
