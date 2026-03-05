@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../models/user_profile.dart';
-import '../../../services/user_service.dart';
+import '../../../config/service_locator.dart';
+import '../../../domain/entities/user_profile_entity.dart';
+import '../../../domain/usecases/user_profile/update_user_profile.dart';
 
 /// Diálogo para editar el perfil de usuario
 class EditProfileDialog extends StatefulWidget {
-  final UserProfile userProfile;
-  final UserService? userService;
+  final UserProfileEntity userProfile;
+  final UpdateUserProfile? updateUserProfile;
 
   const EditProfileDialog({
     super.key,
     required this.userProfile,
-    this.userService,
+    this.updateUserProfile,
   });
 
   @override
@@ -24,7 +25,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   final _lastNameController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
-  late final UserService _userService;
+  late final UpdateUserProfile _updateUserProfile;
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
@@ -32,7 +33,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   @override
   void initState() {
     super.initState();
-    _userService = widget.userService ?? UserService();
+    _updateUserProfile = widget.updateUserProfile ?? getIt<UpdateUserProfile>();
     _firstNameController.text = widget.userProfile.firstName;
     _lastNameController.text = widget.userProfile.lastName;
   }
@@ -83,13 +84,18 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         avatarUrl = widget.userProfile.avatarUrl;
       }
 
-      // Actualizar perfil en Firestore
-      await _userService.updateUserProfile(
+      // Actualizar perfil usando el use case de dominio
+      final updatedProfile = UserProfileEntity(
         uid: widget.userProfile.uid,
+        email: widget.userProfile.email,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         avatarUrl: avatarUrl,
+        createdAt: widget.userProfile.createdAt,
+        updatedAt: DateTime.now(),
       );
+
+      await _updateUserProfile(updatedProfile);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

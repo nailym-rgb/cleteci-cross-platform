@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'package:mockito/mockito.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:cleteci_cross_platform/config/service_locator.dart';
-import 'package:cleteci_cross_platform/services/auth_service.dart';
-import 'package:cleteci_cross_platform/services/speech_service.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/repositories/speech_repository.dart';
 import 'package:cleteci_cross_platform/ui/common/widgets/default_app_bar.dart';
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 
@@ -22,29 +22,54 @@ class MockLocalAuthState extends Mock implements LocalAuthState {
   Future<bool> authenticateWithBiometrics() async => true;
 }
 
-// Mock class for AuthService
-class MockAuthService extends Mock implements AuthService {
+// Mock class for AuthRepository — logged out
+class MockAuthRepository extends Mock implements AuthRepository {
   @override
-  Stream<User?> get authStateChanges => Stream.value(null);
+  Stream<UserProfileEntity?> get authStateChanges => Stream.value(null);
 
   @override
-  FirebaseAuth get firebaseAuth => MockFirebaseAuth();
+  UserProfileEntity? get currentUser => null;
 }
 
-// Create a separate mock for authenticated state
-class MockAuthServiceAuthenticated extends Mock implements AuthService {
+// Mock class for AuthRepository — logged in
+class MockAuthRepositoryAuthenticated extends Mock implements AuthRepository {
   @override
-  Stream<User?> get authStateChanges => Stream.value(MockUser(email: 'test@example.com'));
+  Stream<UserProfileEntity?> get authStateChanges => Stream.value(
+    UserProfileEntity(
+      uid: 'test-uid',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    ),
+  );
 
   @override
-  FirebaseAuth get firebaseAuth => MockFirebaseAuth();
+  UserProfileEntity? get currentUser => UserProfileEntity(
+    uid: 'test-uid',
+    email: 'test@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
+}
+
+// Mock class for SpeechRepository
+class MockSpeechRepository extends Mock implements SpeechRepository {
+  @override
+  bool get isListening => false;
+
+  @override
+  void dispose() {}
 }
 
 void main() {
   late MockLocalAuthState mockLocalAuthState;
   late MockFirebaseAuth mockFirebaseAuth;
-  late MockAuthService mockAuthService;
-  late MockAuthServiceAuthenticated mockAuthServiceAuthenticated;
+  late MockAuthRepository mockAuthRepository;
+  late MockAuthRepositoryAuthenticated mockAuthRepositoryAuthenticated;
 
   setUpAll(() {
     // Reset service locator before setting up
@@ -54,20 +79,19 @@ void main() {
   setUp(() {
     mockLocalAuthState = MockLocalAuthState();
     mockFirebaseAuth = MockFirebaseAuth();
-    mockAuthService = MockAuthService();
-    mockAuthServiceAuthenticated = MockAuthServiceAuthenticated();
+    mockAuthRepository = MockAuthRepository();
+    mockAuthRepositoryAuthenticated = MockAuthRepositoryAuthenticated();
 
     // Register common services for all tests
     getIt.registerSingleton<FirebaseAuth>(mockFirebaseAuth);
-    getIt.registerSingleton<AuthService>(mockAuthService);
+    getIt.registerSingleton<AuthRepository>(mockAuthRepository);
     getIt.registerSingleton<LocalAuthState>(mockLocalAuthState);
-    getIt.registerSingleton<SpeechService>(SpeechService());
+    getIt.registerSingleton<SpeechRepository>(MockSpeechRepository());
   });
 
   tearDown(() {
     resetServiceLocator();
   });
-
 
   Widget createTestWidget() {
     return MaterialApp(
@@ -79,13 +103,17 @@ void main() {
   }
 
   group('DefaultAppBar', () {
-    testWidgets('should have correct preferred size', (WidgetTester tester) async {
+    testWidgets('should have correct preferred size', (
+      WidgetTester tester,
+    ) async {
       const appBar = DefaultAppBar(title: 'Test');
 
       expect(appBar.preferredSize, const Size.fromHeight(60));
     });
 
-    testWidgets('should create DefaultAppBar widget', (WidgetTester tester) async {
+    testWidgets('should create DefaultAppBar widget', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
 
       // The widget should be created
@@ -100,13 +128,12 @@ void main() {
     });
 
     testWidgets('should handle long title', (WidgetTester tester) async {
-      const longTitle = 'This is a very long title that should still be displayed correctly';
+      const longTitle =
+          'This is a very long title that should still be displayed correctly';
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            appBar: const DefaultAppBar(title: longTitle),
-          ),
+          home: Scaffold(appBar: const DefaultAppBar(title: longTitle)),
         ),
       );
 
@@ -114,7 +141,9 @@ void main() {
       expect(find.byType(DefaultAppBar), findsOneWidget);
     });
 
-    testWidgets('should show logged out app bar when user is not authenticated', (WidgetTester tester) async {
+    testWidgets('should show logged out app bar when user is not authenticated', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
@@ -124,10 +153,12 @@ void main() {
       expect(find.byIcon(Icons.person), findsNothing);
     });
 
-    testWidgets('should show logged in app bar when user is authenticated', (WidgetTester tester) async {
-      // Override the auth service for this test
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+    testWidgets('should show logged in app bar when user is authenticated', (
+      WidgetTester tester,
+    ) async {
+      // Override the auth repository for this test
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -147,9 +178,9 @@ void main() {
     });
 
     testWidgets('should handle menu button tap', (WidgetTester tester) async {
-      // Override the auth service for authenticated state
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+      // Override the auth repository for authenticated state
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -165,10 +196,12 @@ void main() {
       expect(find.byIcon(Icons.menu), findsOneWidget);
     });
 
-    testWidgets('should handle profile button tap with biometric auth', (WidgetTester tester) async {
-      // Override the auth service for authenticated state
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+    testWidgets('should handle profile button tap with biometric auth', (
+      WidgetTester tester,
+    ) async {
+      // Override the auth repository for authenticated state
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -184,10 +217,12 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget);
     });
 
-    testWidgets('should handle profile button tap without biometric auth', (WidgetTester tester) async {
-      // Override the auth service for authenticated state
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+    testWidgets('should handle profile button tap without biometric auth', (
+      WidgetTester tester,
+    ) async {
+      // Override the auth repository for authenticated state
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -203,10 +238,12 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget);
     });
 
-    testWidgets('should handle profile button tap when not authorized', (WidgetTester tester) async {
-      // Override the auth service for authenticated state
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+    testWidgets('should handle profile button tap when not authorized', (
+      WidgetTester tester,
+    ) async {
+      // Override the auth repository for authenticated state
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -230,7 +267,9 @@ void main() {
       expect(find.text('Test'), findsOneWidget);
     });
 
-    testWidgets('should have proper app bar styling', (WidgetTester tester) async {
+    testWidgets('should have proper app bar styling', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
@@ -238,7 +277,9 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('should handle Firebase initialization completion', (WidgetTester tester) async {
+    testWidgets('should handle Firebase initialization completion', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
@@ -246,7 +287,9 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('should handle auth state changes', (WidgetTester tester) async {
+    testWidgets('should handle auth state changes', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
       await tester.pump();
@@ -256,23 +299,27 @@ void main() {
       expect(find.byType(DefaultAppBar), findsOneWidget);
     });
 
-    testWidgets('should have StreamBuilder for auth state', (WidgetTester tester) async {
+    testWidgets('should have StreamBuilder for auth state', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
       // Should have StreamBuilder - check by finding the DefaultAppBar first
       expect(find.byType(DefaultAppBar), findsOneWidget);
       // The StreamBuilder is inside the DefaultAppBar, so we need to find it within the widget tree
-      final defaultAppBar = find.byType(DefaultAppBar).evaluate().first.widget as DefaultAppBar;
+      final defaultAppBar =
+          find.byType(DefaultAppBar).evaluate().first.widget as DefaultAppBar;
       // Since we can't directly access the internal StreamBuilder, we'll verify the widget builds correctly
       expect(defaultAppBar, isNotNull);
     });
 
-
-    testWidgets('should handle mounted state in profile button callback', (WidgetTester tester) async {
-      // Override the auth service for this test
-      getIt.unregister<AuthService>();
-      getIt.registerSingleton<AuthService>(mockAuthServiceAuthenticated);
+    testWidgets('should handle mounted state in profile button callback', (
+      WidgetTester tester,
+    ) async {
+      // Override the auth repository for this test
+      getIt.unregister<AuthRepository>();
+      getIt.registerSingleton<AuthRepository>(mockAuthRepositoryAuthenticated);
 
       await tester.pumpWidget(
         MaterialApp(

@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service_impl.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/usecases/auth/sign_out_use_case.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/get_user_profile.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart';
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../models/user_profile.dart';
-import '../../../services/user_service.dart';
+import 'package:cleteci_cross_platform/config/service_locator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:aws_s3_upload_lite/aws_s3_upload_lite.dart';
 import 'package:path/path.dart' as path;
@@ -14,13 +17,22 @@ import 'dart:typed_data';
 class CustomUserProfileScreen extends StatefulWidget {
   CustomUserProfileScreen({
     super.key,
-    UserService? userService,
-    FirebaseAuth? auth,
-  }) : _userService = userService ?? UserService(),
-       _auth = auth ?? FirebaseAuth.instance;
+    GetUserProfile? getUserProfile,
+    UpdateUserProfile? updateUserProfile,
+    AuthRepository? authRepository,
+    SignOutUseCase? signOutUseCase,
+    CamaraGalleryService? camaraGalleryService,
+  }) : _getUserProfile = getUserProfile ?? getIt<GetUserProfile>(),
+       _updateUserProfile = updateUserProfile ?? getIt<UpdateUserProfile>(),
+       _authRepository = authRepository ?? getIt<AuthRepository>(),
+       _signOutUseCase = signOutUseCase ?? getIt<SignOutUseCase>(),
+       _camaraGalleryService = camaraGalleryService ?? getIt<CamaraGalleryService>();
 
-  final UserService _userService;
-  final FirebaseAuth _auth;
+  final GetUserProfile _getUserProfile;
+  final UpdateUserProfile _updateUserProfile;
+  final AuthRepository _authRepository;
+  final SignOutUseCase _signOutUseCase;
+  final CamaraGalleryService _camaraGalleryService;
 
   @override
   State<CustomUserProfileScreen> createState() =>
@@ -30,9 +42,12 @@ class CustomUserProfileScreen extends StatefulWidget {
 class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   static const String signOutText = 'Cerrar Sesión';
 
-  UserService get _userService => widget._userService;
-  FirebaseAuth get _auth => widget._auth;
-  UserProfile? _userProfile;
+  GetUserProfile get _getUserProfile => widget._getUserProfile;
+  UpdateUserProfile get _updateUserProfile => widget._updateUserProfile;
+  AuthRepository get _authRepository => widget._authRepository;
+  SignOutUseCase get _signOutUseCase => widget._signOutUseCase;
+  CamaraGalleryService get _camaraGalleryService => widget._camaraGalleryService;
+  UserProfileEntity? _userProfile;
 
   // Controladores para edición directa
   late TextEditingController _firstNameController;
@@ -60,7 +75,9 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      final profile = await _userService.getCurrentUserProfile();
+      final uid = _authRepository.currentUser?.uid;
+      if (uid == null) return;
+      final profile = await _getUserProfile(uid);
       if (mounted) {
         setState(() {
           _userProfile = profile;
@@ -82,8 +99,8 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
   // Métodos de auto-guardado eliminados para control manual
 
   Future<void> _createNewProfile() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    final currentUser = _authRepository.currentUser;
+    if (currentUser == null) return;
 
     String? newAvatarUrl;
     try {
@@ -92,7 +109,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
         if (kIsWeb && extension.isEmpty) extension = '.png';
 
         String uniqueFileName =
-            '${_userProfile!.uid}_${DateTime.now().millisecondsSinceEpoch}$extension';
+            '${currentUser.uid}_${DateTime.now().millisecondsSinceEpoch}$extension';
 
         String bucketName = dotenv.maybeGet('AWS_S3_BUCKET_NAME') ?? '';
         String region = dotenv.maybeGet('AWS_S3_REGION') ?? '';
@@ -131,13 +148,17 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
             "https://$bucketName.s3.amazonaws.com/profiles/$uniqueFileName";
       }
 
-      await _userService.createUserProfile(
-        uid: user.uid,
-        email: user.email ?? '',
+      final now = DateTime.now();
+      final newProfile = UserProfileEntity(
+        uid: currentUser.uid,
+        email: currentUser.email,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         avatarUrl: newAvatarUrl,
+        createdAt: now,
+        updatedAt: now,
       );
+      await _updateUserProfile(newProfile);
       await _loadUserProfile();
     } catch (e) {
       debugPrint('Error en el registro: $e');
@@ -206,21 +227,17 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
       final finalAvatarUrl = newAvatarUrl ?? _userProfile?.avatarUrl ?? '';
 
-      await _userService.updateUserProfile(
-        uid: _userProfile!.uid,
+      final updatedProfile = _userProfile!.copyWith(
         firstName: firstName,
         lastName: lastName,
         avatarUrl: finalAvatarUrl,
+        updatedAt: DateTime.now(),
       );
+      await _updateUserProfile(updatedProfile);
 
       if (mounted) {
         setState(() {
-          _userProfile = _userProfile!.copyWith(
-            firstName: firstName,
-            lastName: lastName,
-            avatarUrl: finalAvatarUrl,
-            updatedAt: DateTime.now(),
-          );
+          _userProfile = updatedProfile;
         });
       }
     } catch (e) {
@@ -371,7 +388,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
             children: [
               TextButton.icon(
                 onPressed: () async {
-                  final String? photoPath = await CamaraGalleryServiceImpl()
+                  final String? photoPath = await _camaraGalleryService
                       .selectPhoto();
                   if (photoPath == null) return;
                   setState(() {
@@ -379,11 +396,11 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                   });
                 },
                 icon: const Icon(Icons.photo_library),
-                label: const Text('Galería'),
+                label: const Text('Galeria'),
               ),
               TextButton.icon(
                 onPressed: () async {
-                  final String? photoPath = await CamaraGalleryServiceImpl()
+                  final String? photoPath = await _camaraGalleryService
                       .takePhoto();
                   if (photoPath == null) return;
                   setState(() {
@@ -391,7 +408,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                   });
                 },
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Cámara'),
+                label: const Text('Camara'),
               ),
             ],
           ),
@@ -405,7 +422,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
 
           // Email
           Text(
-            _auth.currentUser?.email ?? '',
+            _authRepository.currentUser?.email ?? '',
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).disabledColor.withValues(alpha: 0.6),
@@ -477,7 +494,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
                 icon: Icons.email,
                 title: 'Correo electrónico',
                 controller: TextEditingController(
-                  text: _auth.currentUser?.email ?? '',
+                  text: _authRepository.currentUser?.email ?? '',
                 ),
                 hintText: 'correo@ejemplo.com',
                 enabled: false,
@@ -575,7 +592,7 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
     );
 
     if (shouldSignOut == true && mounted) {
-      await _auth.signOut();
+      await _signOutUseCase();
       if (mounted) Navigator.of(context).pop();
     }
   }
@@ -587,8 +604,10 @@ class _CustomUserProfileScreenState extends State<CustomUserProfileScreen> {
         title: const Text('Perfil de Usuario'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      body: FutureBuilder<UserProfile?>(
-        future: _userService.getCurrentUserProfile(),
+      body: FutureBuilder<UserProfileEntity?>(
+        future: _authRepository.currentUser != null
+            ? _getUserProfile(_authRepository.currentUser!.uid)
+            : Future.value(null),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

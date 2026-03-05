@@ -1,8 +1,8 @@
 import 'package:cleteci_cross_platform/config/service_locator.dart';
-import 'package:cleteci_cross_platform/services/auth_service.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
 import 'package:cleteci_cross_platform/ui/auth/view_model/local_auth_state.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +43,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
   }
 
 
-  Widget _buildStreamBuilder(BuildContext context, AsyncSnapshot<User?> snapshot) {
+  Widget _buildStreamBuilder(BuildContext context, AsyncSnapshot<UserProfileEntity?> snapshot) {
     final ThemeData appTheme = Theme.of(context);
     final appState = getIt<LocalAuthState>();
     bool isLoggedIn = snapshot.hasData;
@@ -89,12 +89,9 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    // Get LocalAuthState from service locator instead of Provider
-
-    // Firebase is initialized, proceed with auth logic
-    final authService = getIt<AuthService>();
-    return StreamBuilder<User?>(
-      stream: authService.authStateChanges,
+    final authRepository = getIt<AuthRepository>();
+    return StreamBuilder<UserProfileEntity?>(
+      stream: authRepository.authStateChanges,
       builder: _buildStreamBuilder,
     );
   }

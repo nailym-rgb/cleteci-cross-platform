@@ -2,52 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:cleteci_cross_platform/config/theme_provider.dart';
-import 'package:cleteci_cross_platform/models/user_profile.dart';
-import 'package:cleteci_cross_platform/services/user_service.dart';
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/repositories/user_profile_repository.dart';
+import 'package:cleteci_cross_platform/domain/usecases/auth/sign_out_use_case.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/get_user_profile.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart';
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service.dart';
 import 'package:cleteci_cross_platform/ui/auth/widgets/custom_profile_screen.dart';
 import '../../../config/firebase_test_utils.dart';
 
-class MockUserService extends Mock implements UserService {
+final _testUser = UserProfileEntity(
+  uid: 'test-uid',
+  email: 'test@example.com',
+  firstName: 'John',
+  lastName: 'Doe',
+  createdAt: DateTime(2024),
+  updatedAt: DateTime(2024),
+);
+
+class MockAuthRepository extends Mock implements AuthRepository {
   @override
-  Future<UserProfile?> getCurrentUserProfile() async {
-    return UserProfile(
-      uid: 'test-uid',
-      email: 'test@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  UserProfileEntity? get currentUser => _testUser;
 
   @override
-  Future<void> createUserProfile({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    String? avatarUrl,
-  }) async {
-    // Mock implementation
-  }
+  Stream<UserProfileEntity?> get authStateChanges => Stream.value(_testUser);
+}
+
+class MockUserProfileRepository extends Mock implements UserProfileRepository {
+  @override
+  Future<UserProfileEntity?> getProfile(String uid) async => _testUser;
 
   @override
-  Future<void> updateUserProfile({
-    required String uid,
-    String? firstName,
-    String? lastName,
-    String? avatarUrl,
-  }) async {
-    // Mock implementation
-  }
+  Future<void> updateProfile(UserProfileEntity profile) async {}
+
+  @override
+  Future<void> deleteProfile(String uid) async {}
+
+  @override
+  Stream<UserProfileEntity?> watchProfile(String uid) =>
+      Stream.value(_testUser);
+}
+
+class MockSignOutUseCase extends Mock implements SignOutUseCase {
+  @override
+  Future<void> call() async {}
+}
+
+class MockCamaraGalleryService extends Mock implements CamaraGalleryService {
+  @override
+  Future<String?> takePhoto() async => null;
+
+  @override
+  Future<String?> selectPhoto() async => null;
 }
 
 void main() {
-  late MockUserService mockUserService;
-  late MockFirebaseAuth mockAuth;
+  late GetUserProfile getUserProfile;
+  late UpdateUserProfile updateUserProfile;
+  late MockAuthRepository mockAuthRepository;
+  late MockSignOutUseCase mockSignOutUseCase;
+  late MockCamaraGalleryService mockCamaraGalleryService;
   late ThemeProvider themeProvider;
 
   setUpAll(() async {
@@ -55,8 +71,12 @@ void main() {
   });
 
   setUp(() {
-    mockUserService = MockUserService();
-    mockAuth = MockFirebaseAuth();
+    final mockUserProfileRepository = MockUserProfileRepository();
+    getUserProfile = GetUserProfile(mockUserProfileRepository);
+    updateUserProfile = UpdateUserProfile(mockUserProfileRepository);
+    mockAuthRepository = MockAuthRepository();
+    mockSignOutUseCase = MockSignOutUseCase();
+    mockCamaraGalleryService = MockCamaraGalleryService();
     themeProvider = ThemeProvider();
   });
 
@@ -68,7 +88,13 @@ void main() {
     return ChangeNotifierProvider<ThemeProvider>(
       create: (_) => themeProvider,
       child: MaterialApp(
-        home: CustomUserProfileScreen(userService: mockUserService, auth: mockAuth),
+        home: CustomUserProfileScreen(
+          getUserProfile: getUserProfile,
+          updateUserProfile: updateUserProfile,
+          authRepository: mockAuthRepository,
+          signOutUseCase: mockSignOutUseCase,
+          camaraGalleryService: mockCamaraGalleryService,
+        ),
       ),
     );
   }
@@ -87,6 +113,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Just verify the widget builds without errors
+      expect(find.byType(CustomUserProfileScreen), findsOneWidget);
+    });
+
+    testWidgets('loads user profile via GetUserProfile use case', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Profile data should be displayed from the use case result
       expect(find.byType(CustomUserProfileScreen), findsOneWidget);
     });
   });

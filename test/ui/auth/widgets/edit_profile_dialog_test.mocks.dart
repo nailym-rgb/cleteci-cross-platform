@@ -7,8 +7,10 @@ import 'dart:async' as _i4;
 import 'dart:convert' as _i8;
 import 'dart:typed_data' as _i9;
 
-import 'package:cleteci_cross_platform/models/user_profile.dart' as _i6;
-import 'package:cleteci_cross_platform/services/user_service.dart' as _i5;
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart'
+    as _i5;
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart'
+    as _i6;
 import 'package:image_picker/image_picker.dart' as _i3;
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart'
     as _i2;
@@ -181,78 +183,22 @@ class MockImagePicker extends _i1.Mock implements _i3.ImagePicker {
           as bool);
 }
 
-/// A class which mocks [UserService].
+/// A class which mocks [UpdateUserProfile].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserService extends _i1.Mock implements _i5.UserService {
-  MockUserService() {
+class MockUpdateUserProfile extends _i1.Mock implements _i6.UpdateUserProfile {
+  MockUpdateUserProfile() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i6.UserProfile?> getCurrentUserProfile() =>
+  _i4.Future<void> call(_i5.UserProfileEntity? profile) =>
       (super.noSuchMethod(
-            Invocation.method(#getCurrentUserProfile, []),
-            returnValue: _i4.Future<_i6.UserProfile?>.value(),
-          )
-          as _i4.Future<_i6.UserProfile?>);
-
-  @override
-  _i4.Future<void> saveUserProfile(_i6.UserProfile? profile) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveUserProfile, [profile]),
+            Invocation.method(#call, [profile]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )
           as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> createUserProfile({
-    required String? uid,
-    required String? email,
-    required String? firstName,
-    required String? lastName,
-    String? avatarUrl,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#createUserProfile, [], {
-              #uid: uid,
-              #email: email,
-              #firstName: firstName,
-              #lastName: lastName,
-              #avatarUrl: avatarUrl,
-            }),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> updateUserProfile({
-    required String? uid,
-    String? firstName,
-    String? lastName,
-    String? avatarUrl,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#updateUserProfile, [], {
-              #uid: uid,
-              #firstName: firstName,
-              #lastName: lastName,
-              #avatarUrl: avatarUrl,
-            }),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
-
-  @override
-  _i4.Stream<_i6.UserProfile?> watchCurrentUserProfile() =>
-      (super.noSuchMethod(
-            Invocation.method(#watchCurrentUserProfile, []),
-            returnValue: _i4.Stream<_i6.UserProfile?>.empty(),
-          )
-          as _i4.Stream<_i6.UserProfile?>);
 }
 
 /// A class which mocks [XFile].

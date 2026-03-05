@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service_impl.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
+import 'package:cleteci_cross_platform/domain/entities/user_profile_entity.dart';
+import 'package:cleteci_cross_platform/domain/repositories/auth_repository.dart';
+import 'package:cleteci_cross_platform/domain/usecases/user_profile/update_user_profile.dart';
+import 'package:cleteci_cross_platform/shared/infrastructure/services/camara_gallery_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../services/user_service.dart';
+import 'package:cleteci_cross_platform/config/service_locator.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:aws_s3_upload_lite/aws_s3_upload_lite.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,12 +16,18 @@ import 'dart:typed_data';
 
 /// Formulario personalizado de registro que incluye campos adicionales
 class CustomRegisterForm extends StatefulWidget {
-  CustomRegisterForm({super.key, UserService? userService, FirebaseAuth? auth})
-    : _userService = userService ?? UserService(),
-      _auth = auth ?? FirebaseAuth.instance;
+  CustomRegisterForm({
+    super.key,
+    AuthRepository? authRepository,
+    UpdateUserProfile? updateUserProfile,
+    CamaraGalleryService? camaraGalleryService,
+  }) : _authRepository = authRepository ?? getIt<AuthRepository>(),
+       _updateUserProfile = updateUserProfile ?? getIt<UpdateUserProfile>(),
+       _camaraGalleryService = camaraGalleryService ?? getIt<CamaraGalleryService>();
 
-  final UserService _userService;
-  final FirebaseAuth _auth;
+  final AuthRepository _authRepository;
+  final UpdateUserProfile _updateUserProfile;
+  final CamaraGalleryService _camaraGalleryService;
 
   @override
   State<CustomRegisterForm> createState() => _CustomRegisterFormState();
@@ -33,8 +41,9 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  UserService get _userService => widget._userService;
-  FirebaseAuth get _auth => widget._auth;
+  AuthRepository get _authRepository => widget._authRepository;
+  UpdateUserProfile get _updateUserProfile => widget._updateUserProfile;
+  CamaraGalleryService get _camaraGalleryService => widget._camaraGalleryService;
 
   XFile? _selectedAvatar;
   bool _isLoading = false;
@@ -111,20 +120,24 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
             "https://$bucketName.s3.amazonaws.com/profiles/$uniqueFileName";
       }
 
-      // Crear usuario en Firebase Auth
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      // Crear usuario en Firebase Auth via dominio
+      final userEntity = await _authRepository.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      // Crear perfil en Firestore
-      await _userService.createUserProfile(
-        uid: userCredential.user!.uid,
+      // Crear perfil en Firestore via caso de uso
+      final now = DateTime.now();
+      final profile = UserProfileEntity(
+        uid: userEntity.uid,
         email: _emailController.text.trim(),
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
-        avatarUrl: avatarUrl,
+        avatarUrl: avatarUrl.isEmpty ? null : avatarUrl,
+        createdAt: now,
+        updatedAt: now,
       );
+      await _updateUserProfile(profile);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -202,7 +215,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
             children: [
               TextButton.icon(
                 onPressed: () async {
-                  final String? photoPath = await CamaraGalleryServiceImpl()
+                  final String? photoPath = await _camaraGalleryService
                       .selectPhoto();
                   if (photoPath == null) return;
                   setState(() {
@@ -210,11 +223,11 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
                   });
                 },
                 icon: const Icon(Icons.photo_library),
-                label: const Text('Galería'),
+                label: const Text('Galeria'),
               ),
               TextButton.icon(
                 onPressed: () async {
-                  final String? photoPath = await CamaraGalleryServiceImpl()
+                  final String? photoPath = await _camaraGalleryService
                       .takePhoto();
                   if (photoPath == null) return;
                   setState(() {
@@ -222,7 +235,7 @@ class _CustomRegisterFormState extends State<CustomRegisterForm> {
                   });
                 },
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Cámara'),
+                label: const Text('Camara'),
               ),
             ],
           ),
